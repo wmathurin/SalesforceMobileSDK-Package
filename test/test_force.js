@@ -41,6 +41,7 @@ function main(args) {
     // Args extraction
     var usageRequested = parsedArgs.hasOwnProperty('usage');
     var useSfdxRequested = parsedArgs.hasOwnProperty('use-sfdx');
+    var noPluginUpdate = parsedArgs.hasOwnProperty('no-plugin-update');
     var exitOnFailure = parsedArgs.hasOwnProperty('exit-on-failure');
     var chosenOperatingSystems = cleanSplit(parsedArgs.os, ',').map(function(s) { return s.toLowerCase(); });
     var templateRepoUri = parsedArgs.templaterepouri || '';
@@ -112,8 +113,8 @@ function main(args) {
     if (testingHybrid) {
         var sdkBranch = utils.separateRepoUrlPathBranch(pluginRepoUri).branch;
 
-        // Using updated local clone of plugin repo if pluginRepoUri does not point to tag
-        if (!pluginRepoUri.indexOf('//') >= 0 && !sdkBranch.match(/v[0-9.]+/)) {
+        // Using updated local clone of plugin repo if pluginRepoUri does not point to tag and noPluginUpdate is false
+        if (!pluginRepoUri.indexOf('//') >= 0 && !sdkBranch.match(/v[0-9.]+/) && !noPluginUpdate) {
             var pluginRepoDir = utils.cloneRepo(tmpDir, pluginRepoUri);
             if (testingIOS && testingAndroid) updatePluginRepo(tmpDir, 'all', pluginRepoDir, sdkBranch);
             if (testingIOS && !testingAndroid) updatePluginRepo(tmpDir, OS.ios, pluginRepoDir, sdkBranch);
@@ -138,7 +139,7 @@ function main(args) {
                 for (var k=0; k<template.platforms.length; k++) {
                     var os = template.platforms[k];
                     if (chosenOperatingSystems.length == 0 || chosenOperatingSystems.indexOf(os) >= 0) {
-                        createCompileApp(tmpDir, os, template.appType, template.url, pluginRepoUri, useSfdxRequested);
+                        createCompileApp(tmpDir, os, template.appType, template.path, pluginRepoUri, useSfdxRequested);
                     }
                 }
             }
@@ -156,7 +157,8 @@ function main(args) {
 
             if (testingWithTemplate) {
                 // NB: chosenAppTypes[0] is appType from template
-                createCompileApp(tmpDir, os, chosenAppTypes[0], templateRepoUri, pluginRepoUri, useSfdxRequested);
+                var appType = chosenAppTypes.length > 0 ? chosenAppTypes[0] : [templateHelper.getAppTypeFromTemplate(templateRepoUri)];
+                createCompileApp(tmpDir, os, appType, templateRepoUri, pluginRepoUri, useSfdxRequested);
             }
         }
     }
@@ -175,12 +177,13 @@ function shortUsage(exitCode) {
     utils.logInfo('    [--use-sfdx]', COLOR.magenta);
     utils.logInfo('    [--exit-on-failure]', COLOR.magenta);
     utils.logInfo('    [--pluginrepouri=PLUGIN_REPO_URI (Defaults to uri in shared/constants.js)]', COLOR.magenta);
+    utils.logInfo('    [--no-plugin-update]', COLOR.magenta);
     utils.logInfo('', COLOR.cyan);
     utils.logInfo('  Where:', COLOR.cyan);
     utils.logInfo('  - osX is : ios or android', COLOR.cyan);
     utils.logInfo('  - cliX is : forceios or forcedroid or forcehybrid or forcereact', COLOR.cyan);
     utils.logInfo('  - appTypeX is: native, native_swift, native_kotlin, react_native, hybrid_local or hybrid_remote', COLOR.cyan);
-    utils.logInfo('  - templaterepouri is a template repo uri e.g. https://github.com/forcedotcom/SalesforceMobileSDK-Templates/SmartSyncExplorerReactNative#dev', COLOR.cyan);
+    utils.logInfo('  - templaterepouri is a template repo uri or a Mobile SDK template name', COLOR.cyan);
     utils.logInfo('', COLOR.cyan);
 
     if (typeof(exitCode) !== 'undefined') {
@@ -269,37 +272,27 @@ function updatePluginRepo(tmpDir, os, pluginRepoDir, sdkBranch) {
     utils.logInfo('Updating cordova plugin at ' + sdkBranch, COLOR.green);
     utils.runProcessThrowError(path.join('tools', 'update.sh') + ' -b ' + sdkBranch + ' -o ' + os, pluginRepoDir);
 }
-
-function cleanName(name) {
-    return name.replace(/[#-\.]/g, '_')
-}
-
 //
 // Create and compile app
 //
 function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepoUri, useSfdxRequested) {
     var execArgs = '';
-    var isNative = actualAppType.indexOf('native') == 0;
+    var isNative = actualAppType == APP_TYPE.native || actualAppType == APP_TYPE.native_swift || actualAppType == APP_TYPE.native_kotlin; 
+    var isReactNative = actualAppType === APP_TYPE.react_native;
     var isReactNative = actualAppType === APP_TYPE.react_native;
     var isHybrid = actualAppType.indexOf('hybrid') == 0;
     var isHybridRemote = actualAppType === APP_TYPE.hybrid_remote;
-    var templateName = getTemplateNameFromUri(templateRepoUri);
-    if (templateName && templateName.indexOf('HybridRemoteTemplate') == 0) {
+    if (isHybridRemote) {
         // XXX createwithtemplate doesn't work for hybrid remote template
         //     because the arg validation only accept startpage if apptype is available as an arg
         //
         // As a work around, we make sure create with --apptype=xxx is called instead of createwithtemplate
         templateRepoUri = null;
     }
-    var target = actualAppType + ' app for ' + os + (templateRepoUri ? ' based on template ' + templateName : '');
-    var appName = 'App_' + (templateRepoUri ? cleanName(templateName) : actualAppType) + '_' + os;
-    // Add app type unless the app is native or react native iOS
-    var packageSuffix = (os === OS.ios && !isHybrid) ? '' : '.' + actualAppType;
-    // "native" is an illegal word for android package
-    if (actualAppType === APP_TYPE.native) {
-        packageSuffix = packageSuffix.replace('native', 'native_java');
-    }
-    var packageName = 'com.salesforce' + packageSuffix;
+    var target = computeTargetDescription(os, actualAppType, templateRepoUri);
+    var appName = computeAppName(os, actualAppType, templateRepoUri);
+    var packageName = computePackageName(os, actualAppType, appName);
+
     var outputDir = path.join(tmpDir, appName);
     var forcecli = (isReactNative
                     ? SDK.forceclis.forcereact
@@ -311,6 +304,7 @@ function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepo
                          )
                       )
                    );
+
 
     var execPath = useSfdxRequested
         ? 'sfdx mobilesdk:' + forcecli.topic + ':'
@@ -461,8 +455,61 @@ function isWindows() {
 
 //
 // Get template name from uri
+// e.g. https://github.com/forcedotcom/SalesforceMobileSDK-Templates/iOSNativeTemplate#dev --> iOSNativeTemplate
 //
 function getTemplateNameFromUri(templateRepoUri) {
-    var parts = cleanSplit(templateRepoUri, '/');
+    var parts = cleanSplit(cleanSplit(templateRepoUri, '#')[0], '/');
     return parts[parts.length-1];
 }
+
+
+//
+// Get template version from uri
+// e.g. https://github.com/forcedotcom/SalesforceMobileSDK-Templates/iOSNativeTemplate#dev --> dev
+//
+function getTemplateVersionFromUri(templateRepoUri) {
+    var parts = cleanSplit(templateRepoUri, '#');
+    return parts.length == 2 ? parts[1] : 'master';
+}
+
+//
+// Compute app name
+// Try to keep name short (drop the word template if present) but unique (prepend os if not present)
+//
+function computeAppName(os, actualAppType, templateRepoUri) {
+    var appName;
+    if (templateRepoUri) {
+        appName = getTemplateNameFromUri(templateRepoUri).toLowerCase();
+    } else {
+        appName = actualAppType.replace(/_/g, '');
+    }
+
+    // Prepending os if not already in name
+    if (appName.indexOf(os) == -1) {
+        appName = os + appName;
+    }
+
+    // Removing template if in name
+    appName = appName.replace(/template/g, '');
+
+    return appName;
+}
+
+//
+// Compute target description
+// 
+function computeTargetDescription(os, actualAppType, templateRepoUri) {
+    return actualAppType + ' app for ' + os
+        + (templateRepoUri
+           ? ' based on template ' + getTemplateNameFromUri(templateRepoUri) + ' (' + getTemplateVersionFromUri(templateRepoUri) + ')'
+           : '');    
+}
+
+//
+// Compute app package
+//
+function computePackageName(os, actualAppType, appName) {
+    var isHybrid = actualAppType === APP_TYPE.hybrid_local || actualAppType === APP_TYPE.hybrid_remote;
+    return 'com.salesforce' + (os === OS.ios && !isHybrid ? '' : '.' + appName);
+}
+    

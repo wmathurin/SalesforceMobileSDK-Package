@@ -48,16 +48,18 @@ const testVersionDefault = VERSION
 
 const templatesPackageJsons = [
     './AndroidIDPTemplate/package.json',
-    './SmartSyncExplorerReactNative/package.json',
     './AndroidNativeKotlinTemplate/package.json',
-    './SmartSyncExplorerSwift/package.json',
     './AndroidNativeTemplate/package.json',
-    './iOSIDPTemplate/package.json',
     './HybridLocalTemplate/package.json',
-    './iOSNativeSwiftTemplate/package.json',
     './HybridRemoteTemplate/package.json',
-    './iOSNativeTemplate/package.json',
-    './ReactNativeTemplate/package.json'
+    './MobileSyncExplorerReactNative/package.json',
+    './MobileSyncExplorerSwift/package.json',
+    './ReactNativeTemplate/package.json',
+    './iOS13NativeSwiftTemplate/package.json',
+    './iOSIDPTemplate/package.json',
+    './iOSNativeSwiftEncryptedNotificationTemplate/package.json',
+    './iOSNativeSwiftTemplate/package.json',
+    './iOSNativeTemplate/package.json'
 ]
 
 // Questions
@@ -177,7 +179,8 @@ async function prepareRepo(repo, params) {
                     {
                         msg: `Setting up ${config.testMasterBranch}`,
                         cmds: [
-                            createBranch(config.testMasterBranch, 'master') // not fixing submodules / package.json files so it's doesn't conflict on merge
+                            createBranch(config.testMasterBranch, 'master'), // not fixing submodules / package.json files so it's doesn't conflict on merge
+                            params.noDev && params.filesWithOrg ? pointToFork(config.testMasterBranch, params) : null
                         ]
                     },
                     !params.hasDoc ? null : createBranch(config.testDocBranch, 'gh-pages'),
