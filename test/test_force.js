@@ -278,10 +278,9 @@ function updatePluginRepo(tmpDir, os, pluginRepoDir, sdkBranch) {
 function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepoUri, useSfdxRequested) {
     var execArgs = '';
     var isNative = actualAppType == APP_TYPE.native || actualAppType == APP_TYPE.native_swift || actualAppType == APP_TYPE.native_kotlin; 
-    var isReactNative = actualAppType === APP_TYPE.react_native;
-    var isReactNative = actualAppType === APP_TYPE.react_native;
+    var isReactNative = actualAppType == APP_TYPE.react_native;
     var isHybrid = actualAppType.indexOf('hybrid') == 0;
-    var isHybridRemote = actualAppType === APP_TYPE.hybrid_remote;
+    var isHybridRemote = actualAppType == APP_TYPE.hybrid_remote;
     if (isHybridRemote) {
         // XXX createwithtemplate doesn't work for hybrid remote template
         //     because the arg validation only accept startpage if apptype is available as an arg
@@ -499,6 +498,12 @@ function computeAppName(os, actualAppType, templateRepoUri) {
 // Compute target description
 // 
 function computeTargetDescription(os, actualAppType, templateRepoUri) {
+    if (templateRepoUri.indexOf("https://") == -1) {
+        // we allow template name in place of a uri
+        // in that case, let's build full URI so that generated target description is correct
+        var templateUriParsed = utils.separateRepoUrlPathBranch(SDK.templatesRepoUri);
+        templateRepoUri = templateUriParsed.repo + "/" + templateRepoUri + "#" + templateUriParsed.branch
+    }
     return actualAppType + ' app for ' + os
         + (templateRepoUri
            ? ' based on template ' + getTemplateNameFromUri(templateRepoUri) + ' (' + getTemplateVersionFromUri(templateRepoUri) + ')'
