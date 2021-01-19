@@ -28,7 +28,7 @@
 var path = require('path'),
     shelljs = require('shelljs');
 
-var VERSION= '8.3.0';
+var VERSION= '9.0.0';
 
 module.exports = {
     version: VERSION,
@@ -46,18 +46,22 @@ module.exports = {
             checkCmd: 'npm -v',
             minVersion: '3.10'
         },
+        yarn: {
+            checkCmd: 'yarn -v',
+            minVersion: '1.22'
+        },
         pod: {
             checkCmd: 'pod --version',
             minVersion: '1.7.2'
         },
         cordova: {
             checkCmd: 'cordova -v',
-//            pluginRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
-            minVersion: '8.1.2',
-             pluginRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-CordovaPlugin#v' + VERSION, // GA
+            pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
+            minVersion: '10.0.0',
+//             pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#v' + VERSION, // GA
             platformVersion: {
-                ios: '5.1.1',
-                android: '8.1.0'
+                ios: '6.1.1',
+                android: '9.0.0'
             }
         },
         sfdx: {
@@ -71,8 +75,8 @@ module.exports = {
         android: 'Android Studio'
     },
 
-//    templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#dev',    // dev
-     templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#v' + VERSION, // GA
+    templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#dev',    // dev
+//     templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#v' + VERSION, // GA
 
     forceclis: {
         forceios: {
@@ -124,7 +128,7 @@ module.exports = {
             purpose: 'a React Native mobile application',
             dir: 'react',
             platforms: ['ios', 'android'],
-            toolNames: ['git', 'node', 'npm', 'pod'],
+            toolNames: ['git', 'node', 'yarn', 'pod'],
             appTypes: ['react_native'],
             appTypesToPath: {
                 'react_native': 'ReactNativeTemplate'
