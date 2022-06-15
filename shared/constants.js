@@ -28,7 +28,7 @@
 var path = require('path'),
     shelljs = require('shelljs');
 
-var VERSION= '10.0.0';
+var VERSION= '10.1.0';
 
 module.exports = {
     version: VERSION,
@@ -60,9 +60,9 @@ module.exports = {
         },
         cordova: {
             checkCmd: 'cordova -v',
-//            pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
+            pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
             minVersion: '11.0.0',
-             pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#v' + VERSION, // GA
+//             pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#v' + VERSION, // GA
             platformVersion: {
                 ios: '6.2.0',
                 android: '10.1.1'
@@ -79,8 +79,8 @@ module.exports = {
         android: 'Android Studio'
     },
 
-//    templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#dev',    // dev
-     templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#v' + VERSION, // GA
+    templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#dev',    // dev
+//     templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#v' + VERSION, // GA
 
     forceclis: {
         forceios: {
