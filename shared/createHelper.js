@@ -109,24 +109,22 @@ function createHybridApp(config) {
     // Run cordova prepare
     utils.runProcessThrowError('cordova prepare', config.projectDir);
 
-    if (config.platform === 'ios') {
-	if (utils.getToolVersion('xcodebuild -version') < 14000000) {
-            // Use legacy build for xcode 13 and older
-	    useLegacyBuild(config, path.join('platforms', 'ios'));
-
-            // Removing libCordova.a from build (it causes issues e.g. CDVWKWebViewEngine won't register as plugin because it won't be recognized as a kind of CDVPlugin)
-            utils.logInfo('Updating xcode project file');
-            var xcodeProjectFile = path.join(config.projectDir,'platforms', 'ios', config.appname + '.xcodeproj', 'project.pbxproj')
-            var xcodeProjectFileContent = fs.readFileSync(xcodeProjectFile, 'utf8');
-            var newXcodeProjectFileContent = xcodeProjectFileContent.split('\n').filter(line => line.indexOf('libCordova.a in Frameworks') == -1).join('\n');
-            fs.writeFileSync(xcodeProjectFile, newXcodeProjectFileContent);
-            utils.logInfo('Updated  xcode project file');
-
-	} else {
+    if (config.platform.split(',').indexOf('ios') != -1) {
+        if (utils.getToolVersion('xcodebuild -version') < 14000000) {
+                // Use legacy build for xcode 13 and older
+            useLegacyBuild(config, path.join('platforms', 'ios'));
+        } else {
             // Patch podfile for xcode 14
             fixPods(config, path.join('platforms', 'ios'));
-	}
+        }
 
+        // Remove libCordova.a from build 
+        utils.logInfo('Updating xcode project file');
+        var xcodeProjectFile = path.join(config.projectDir,'platforms', 'ios', config.appname + '.xcodeproj', 'project.pbxproj')
+        var xcodeProjectFileContent = fs.readFileSync(xcodeProjectFile, 'utf8');
+        var newXcodeProjectFileContent = xcodeProjectFileContent.split('\n').filter(line => line.indexOf('libCordova.a in Frameworks') == -1).join('\n');
+        fs.writeFileSync(xcodeProjectFile, newXcodeProjectFileContent);
+        utils.logInfo('Updated xcode project file');
     }
    
     // Done
@@ -173,8 +171,17 @@ function fixPods(config, iosSubDir) {
 	"      end\n" +
 	"    end\n" +
 	"  end\n" +
+	"end" +
+	"\n" +
+	"post_install do |installer|\n" + 
+	"  installer.pods_project.targets.each do |target|\n" + 
+	"    if target.deployment_target.to_i < 9\n" + 
+	"      target.build_configurations.each do |config|\n" + 
+	"        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '9.0'\n" + 
+	"      end\n" + 
+	"    end\n" + 
+	"  end\n" + 
 	"end"
-
 
     utils.logInfo('Updating Podfile for project ' + config.appname);
     fs.writeFileSync(podfilePath, originalPodfileContent.replace("use_frameworks!","") + preInstallCode);
@@ -263,7 +270,7 @@ function checkTools(toolNames) {
     try {
         utils.log("Checking tools");
         for (var toolName of toolNames) {
-            utils.checkToolVersion(SDK.tools[toolName].checkCmd, SDK.tools[toolName].minVersion, SDK.tools[toolName].maxVersion);
+            utils.checkToolVersion(SDK.tools[toolName].checkCmd, SDK.tools[toolName].minVersion, SDK.tools[toolName].maxVersion, toolName);
         }
     }
     catch (error) {
