@@ -109,8 +109,36 @@ function createHybridApp(config) {
     // Run cordova prepare
     utils.runProcessThrowError('cordova prepare', config.projectDir);
 
+    // Add theme for Android API 35
+    if (config.platform.split(',').includes('android')) {
+        createAndroidAPI35Theme(config.projectDir);
+    }
+
     // Done
     return prepareResult;
+}
+
+//
+// Add Android API 35 theme file
+// 
+function createAndroidAPI35Theme(projectDir) {
+    const dirPath = path.join(projectDir, 'platforms', 'android', 'app', 'src', 'main', 'res', 'values-v35');
+    const filePath = path.join(dirPath, 'themes.xml');
+    const fileContents = `<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Override for API 35+ to fix white status bar with white icons issue -->
+    <style name="SalesforceSDK_SplashScreen" parent="Theme.SplashScreen.IconBackground">
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>
+        <!-- Use dark icons on light status bar background -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>` 
+
+    // Ensure the directory exists
+    utils.mkDirIfNeeded(dirPath);
+
+    // Write the file
+    fs.writeFileSync(filePath, fileContents, 'utf8');
 }
 
 //
