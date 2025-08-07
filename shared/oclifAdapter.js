@@ -46,21 +46,38 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli) {
-        const applicableTemplates = templateHelper.getTemplates(cli);
+    static listTemplates(cli, templateRepoUri) {
+        const applicableTemplates = templateHelper.getTemplates(cli, templateRepoUri);
 
-        logInfo('\nAvailable templates:\n', COLOR.cyan);
-        for (let i=0; i<applicableTemplates.length; i++) {
+        // Show which template repository is being used
+        if (templateRepoUri) {
+            logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
+            logInfo('Repository: ' + templateRepoUri, COLOR.cyan);
+        } else {
+            logInfo('\nAvailable templates:\n', COLOR.cyan);
+        }
+
+        for (let i = 0; i < applicableTemplates.length; i++) {
             const template = applicableTemplates[i];
-            logInfo((i+1) + ') ' + template.description, COLOR.cyan);
-            logInfo('sfdx ' +  [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':') + ' --' +
-                SDK.args.templateRepoUri.name + '=' + template.path, COLOR.magenta);
+            logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+            // If using custom repository, include it in the command
+            let templateUri = template.path;
+            if (templateRepoUri) {
+                // Parse the repository URI to separate repo and branch
+                const repoParts = templateRepoUri.split('#');
+                const repoUrl = repoParts[0];
+                const branch = repoParts.length > 1 ? repoParts[1] : '';
+                // Format: repository/template-path#branch
+                templateUri = repoUrl + '/' + template.path + (branch ? '#' + branch : '');
+            }
+            logInfo('sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':') + ' --' +
+                SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
         }
         logInfo('');
     }
 
     static runCommand(cli, commandName, vals) {
-        switch(commandName) {
+        switch (commandName) {
             case SDK.commands.create.name:
             case SDK.commands.createwithtemplate.name:
                 createHelper.createApp(cli, vals);
@@ -69,7 +86,7 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli);
+                OclifAdapter.listTemplates(cli, vals.templaterepouri);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
@@ -189,7 +206,7 @@ class OclifAdapter extends Command {
     }
 }
 
-OclifAdapter.getCommand = function(cli, commandName) {
+OclifAdapter.getCommand = function (cli, commandName) {
     if (!this._command) {
         this._command = configHelper.getCommandExpanded(cli, commandName);
     }

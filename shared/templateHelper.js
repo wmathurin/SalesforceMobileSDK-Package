@@ -36,7 +36,7 @@ var path = require('path'),
 function prepareTemplate(config, templateDir) {
     var template = require(path.join(templateDir, 'template.js'));
     return utils.runFunctionThrowError(
-        function() {
+        function () {
             return template.prepare(config, utils.replaceInFiles, utils.moveFile, utils.removeFile);
         },
         templateDir);
@@ -45,14 +45,17 @@ function prepareTemplate(config, templateDir) {
 //
 // Get templates for the given cli
 //
-function getTemplates(cli) {
+function getTemplates(cli, templateRepoUri) {
     try {
 
         // Creating tmp dir for template clone
         var tmpDir = utils.mkTmpDir();
 
+        // Use provided templateRepoUri or fall back to default
+        var repoUri = templateRepoUri || SDK.templatesRepoUri;
+
         // Cloning template repo
-        var repoDir = utils.cloneRepo(tmpDir, SDK.templatesRepoUri);
+        var repoDir = utils.cloneRepo(tmpDir, repoUri);
 
         // Getting list of templates
         var templates = require(path.join(repoDir, 'templates.json'));

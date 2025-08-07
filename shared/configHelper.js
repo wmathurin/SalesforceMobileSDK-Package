@@ -36,7 +36,7 @@ var path = require('path'),
     validateJson = require('./jsonChecker').validateJson;
 
 function applyCli(f, cli) {
-    return typeof f === 'function' ? f(cli): f;
+    return typeof f === 'function' ? f(cli) : f;
 }
 
 function getArgsExpanded(cli, commandName) {
@@ -44,21 +44,21 @@ function getArgsExpanded(cli, commandName) {
     return argNames
         .map(argName => SDK.args[argName])
         .map(arg =>
-             ({
-                 name: arg.name,
-                 'char': arg.char,
-                 description: applyCli(arg.description, cli),
-                 longDescription: applyCli(arg.longDescription, cli),
-                 prompt: applyCli(arg.prompt, cli),
-                 error: applyCli(arg.error, cli),
-                 validate: applyCli(arg.validate, cli),
-                 promptIf: arg.promptIf,
-                 required: arg.required === undefined ? true : arg.required,
-                 hasValue: arg.hasValue === undefined ? true : arg.hasValue,
-                 hidden: applyCli(arg.hidden, cli),
-                 type: arg.type
-             })
-            );
+        ({
+            name: arg.name,
+            'char': arg.char,
+            description: applyCli(arg.description, cli),
+            longDescription: applyCli(arg.longDescription, cli),
+            prompt: applyCli(arg.prompt, cli),
+            error: applyCli(arg.error, cli),
+            validate: applyCli(arg.validate, cli),
+            promptIf: arg.promptIf,
+            required: arg.required === undefined ? true : arg.required,
+            hasValue: arg.hasValue === undefined ? true : arg.hasValue,
+            hidden: applyCli(arg.hidden, cli),
+            type: arg.type
+        })
+        );
 
 }
 
@@ -81,28 +81,28 @@ function readConfig(args, cli, handler) {
     var processorList = null;
 
     switch (commandName || '') {
-    case SDK.commands.version.name:
-        printVersion(cli);
-        process.exit(0);
-        break;
-    case SDK.commands.create.name:
-    case SDK.commands.createwithtemplate.name:
-        processorList = buildArgsProcessorList(cli, commandName);
-        commandLineUtils.processArgsInteractive(commandLineArgs, processorList, handler);
-        break;
-    case SDK.commands.checkconfig.name:
-        processorList = buildArgsProcessorList(cli, commandName);
-        commandLineUtils.processArgsInteractive(commandLineArgs, processorList, function (config) {
-            validateJson(config.configpath, config.configtype);
-        });
-        break;
-    case SDK.commands.listtemplates.name:
-        listTemplates(cli);
-        process.exit(0);
-        break;
-    default:
-        usage(cli);
-        process.exit(1);
+        case SDK.commands.version.name:
+            printVersion(cli);
+            process.exit(0);
+            break;
+        case SDK.commands.create.name:
+        case SDK.commands.createwithtemplate.name:
+            processorList = buildArgsProcessorList(cli, commandName);
+            commandLineUtils.processArgsInteractive(commandLineArgs, processorList, handler);
+            break;
+        case SDK.commands.checkconfig.name:
+            processorList = buildArgsProcessorList(cli, commandName);
+            commandLineUtils.processArgsInteractive(commandLineArgs, processorList, function (config) {
+                validateJson(config.configpath, config.configtype);
+            });
+            break;
+        case SDK.commands.listtemplates.name:
+            listTemplates(cli, commandLineArgs);
+            process.exit(0);
+            break;
+        default:
+            usage(cli);
+            process.exit(1);
     };
 
 
@@ -115,18 +115,47 @@ function printVersion(cli) {
 function printArgs(cli, commandName) {
     getArgsExpanded(cli, commandName)
         .filter(arg => !arg.hidden)
-        .forEach(arg => logInfo('    ' + (!arg.required  ? '[' : '') + '--' + arg.name + '=' + arg.description + (!arg.required ? ']' : ''), COLOR.magenta));
+        .forEach(arg => logInfo('    ' + (!arg.required ? '[' : '') + '--' + arg.name + '=' + arg.description + (!arg.required ? ']' : ''), COLOR.magenta));
 }
 
-function listTemplates(cli) {
+function listTemplates(cli, commandLineArgs) {
     var cliName = cli.name;
-    var applicableTemplates = getTemplates(cli);
 
-    logInfo('\nAvailable templates:\n', COLOR.cyan);
-    for (var i=0; i<applicableTemplates.length; i++) {
+    // Parse command line arguments to extract templateRepoUri
+    var templateRepoUri = null;
+    if (commandLineArgs && commandLineArgs.length > 0) {
+        try {
+            var argsMap = commandLineUtils.parseArgs(commandLineArgs);
+            templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
+        } catch (error) {
+            // If argument parsing fails, continue without templateRepoUri
+        }
+    }
+
+    var applicableTemplates = getTemplates(cli, templateRepoUri);
+
+    // Show which template repository is being used
+    if (templateRepoUri) {
+        logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
+        logInfo('Repository: ' + templateRepoUri, COLOR.cyan);
+    } else {
+        logInfo('\nAvailable templates:\n', COLOR.cyan);
+    }
+
+    for (var i = 0; i < applicableTemplates.length; i++) {
         var template = applicableTemplates[i];
-        logInfo((i+1) + ') ' + template.description, COLOR.cyan);
-        logInfo(cliName + ' ' + SDK.commands.createwithtemplate.name + ' --' + SDK.args.templateRepoUri.name + '=' + template.path, COLOR.magenta);
+        logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+        // If using custom repository, include it in the command
+        var templateUri = template.path;
+        if (templateRepoUri) {
+            // Parse the repository URI to separate repo and branch
+            var repoParts = templateRepoUri.split('#');
+            var repoUrl = repoParts[0];
+            var branch = repoParts.length > 1 ? repoParts[1] : '';
+            // Format: repository/template-path#branch
+            templateUri = repoUrl + '/' + template.path + (branch ? '#' + branch : '');
+        }
+        logInfo(cliName + ' ' + SDK.commands.createwithtemplate.name + ' --' + SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
     }
     logInfo('');
 }
@@ -139,8 +168,8 @@ function usage(cli) {
 
     logInfo('\n' + cliName + ': Tool for building ' + cli.purpose + ' using Salesforce Mobile SDK', COLOR.cyan);
     logInfo('\nUsage:\n', COLOR.cyan);
-    for (var i=0; i<cli.commands.length; i++) {
-        if (i>0) {
+    for (var i = 0; i < cli.commands.length; i++) {
+        if (i > 0) {
             logInfo('\n OR \n', COLOR.cyan);
         }
         var commandName = cli.commands[i];
@@ -184,7 +213,7 @@ function buildArgsProcessorList(cli, commandName) {
 // * preprocessor: function or null
 //
 function addProcessorFor(argProcessorList, argName, prompt, error, validation, preprocessor) {
-    argProcessorList.addArgProcessor(argName, prompt, function(val) {
+    argProcessorList.addArgProcessor(argName, prompt, function (val) {
         val = val.trim();
 
         // validation is either a function or null
