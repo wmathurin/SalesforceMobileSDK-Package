@@ -46,13 +46,13 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli, templateRepoUri) {
-        const applicableTemplates = templateHelper.getTemplates(cli, templateRepoUri);
+    static listTemplates(cli, templateSourceOrRepoUri) {
+        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri);
 
         // Show which template repository is being used
-        if (templateRepoUri) {
+        if (templateSourceOrRepoUri) {
             logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
-            logInfo('Repository: ' + templateRepoUri, COLOR.cyan);
+            logInfo('Repository: ' + templateSourceOrRepoUri, COLOR.cyan);
         } else {
             logInfo('\nAvailable templates:\n', COLOR.cyan);
         }
@@ -62,9 +62,9 @@ class OclifAdapter extends Command {
             logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
             // If using custom repository, include it in the command
             let templateUri = template.path;
-            if (templateRepoUri) {
+            if (templateSourceOrRepoUri) {
                 // Parse the repository URI to separate repo and branch
-                const repoParts = templateRepoUri.split('#');
+                const repoParts = templateSourceOrRepoUri.split('#');
                 const repoUrl = repoParts[0];
                 const branch = repoParts.length > 1 ? repoParts[1] : '';
                 // Format: repository/template-path#branch

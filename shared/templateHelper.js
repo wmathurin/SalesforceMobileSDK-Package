@@ -28,7 +28,8 @@
 // Dependencies
 var path = require('path'),
     SDK = require('./constants'),
-    utils = require('./utils');
+    utils = require('./utils'),
+    fs = require('fs');
 
 //
 // Helper to prepare template
@@ -45,17 +46,22 @@ function prepareTemplate(config, templateDir) {
 //
 // Get templates for the given cli
 //
-function getTemplates(cli, templateRepoUri) {
+function getTemplates(cli, templateSourceOrRepoUri) {
     try {
 
         // Creating tmp dir for template clone
         var tmpDir = utils.mkTmpDir();
 
-        // Use provided templateRepoUri or fall back to default
-        var repoUri = templateRepoUri || SDK.templatesRepoUri;
-
-        // Cloning template repo
-        var repoDir = utils.cloneRepo(tmpDir, repoUri);
+        // Use provided source (git URL or local path) or fall back to default
+        var source = templateSourceOrRepoUri || SDK.templatesRepoUri;
+        var repoDir;
+        if (fs.existsSync(source)) {
+            // Local path
+            repoDir = path.resolve(source);
+        } else {
+            // Git URL
+            repoDir = utils.cloneRepo(tmpDir, source);
+        }
 
         // Getting list of templates
         var templates = require(path.join(repoDir, 'templates.json'));
@@ -63,6 +69,7 @@ function getTemplates(cli, templateRepoUri) {
         // Keeping only applicable templates, adding full template url
         var applicableTemplates = templates
             .filter(template => cli.appTypes.includes(template.appType) && cli.platforms.filter(platform => template.platforms.includes(platform)).length > 0);
+
 
         // Cleanup
         utils.removeFile(tmpDir);

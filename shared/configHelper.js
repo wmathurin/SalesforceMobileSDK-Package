@@ -121,23 +121,26 @@ function printArgs(cli, commandName) {
 function listTemplates(cli, commandLineArgs) {
     var cliName = cli.name;
 
-    // Parse command line arguments to extract templateRepoUri
+    // Parse command line arguments to extract templatesource or templaterepouri
+    var templateSource = null;
     var templateRepoUri = null;
     if (commandLineArgs && commandLineArgs.length > 0) {
         try {
             var argsMap = commandLineUtils.parseArgs(commandLineArgs);
+            templateSource = argsMap[SDK.args.templateSource && SDK.args.templateSource.name];
             templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
         } catch (error) {
             // If argument parsing fails, continue without templateRepoUri
         }
     }
 
-    var applicableTemplates = getTemplates(cli, templateRepoUri);
+    var source = templateSource || templateRepoUri;
+    var applicableTemplates = getTemplates(cli, source);
 
     // Show which template repository is being used
-    if (templateRepoUri) {
+    if (source) {
         logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
-        logInfo('Repository: ' + templateRepoUri, COLOR.cyan);
+        logInfo('Repository: ' + source, COLOR.cyan);
     } else {
         logInfo('\nAvailable templates:\n', COLOR.cyan);
     }
@@ -147,9 +150,9 @@ function listTemplates(cli, commandLineArgs) {
         logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
         // If using custom repository, include it in the command
         var templateUri = template.path;
-        if (templateRepoUri) {
+        if (source) {
             // Parse the repository URI to separate repo and branch
-            var repoParts = templateRepoUri.split('#');
+            var repoParts = source.split('#');
             var repoUrl = repoParts[0];
             var branch = repoParts.length > 1 ? repoParts[1] : '';
             // Format: repository/template-path#branch
