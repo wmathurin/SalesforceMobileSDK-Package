@@ -32,6 +32,7 @@ var path = require('path'),
     COLOR = require('./outputColors'),
     commandLineUtils = require('./commandLineUtils'),
     logInfo = require('./utils').logInfo,
+    separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch,
     getTemplates = require('./templateHelper').getTemplates,
     validateJson = require('./jsonChecker').validateJson;
 
@@ -43,8 +44,7 @@ function getArgsExpanded(cli, commandName) {
     var argNames = applyCli(SDK.commands[commandName].args, cli);
     return argNames
         .map(argName => SDK.args[argName])
-        .map(arg =>
-        ({
+        .map(arg => ({
             name: arg.name,
             'char': arg.char,
             description: applyCli(arg.description, cli),
@@ -57,8 +57,7 @@ function getArgsExpanded(cli, commandName) {
             hasValue: arg.hasValue === undefined ? true : arg.hasValue,
             hidden: applyCli(arg.hidden, cli),
             type: arg.type
-        })
-        );
+        }));
 
 }
 
@@ -151,12 +150,13 @@ function listTemplates(cli, commandLineArgs) {
         // If using custom repository, include it in the command
         var templateUri = template.path;
         if (source) {
-            // Parse the repository URI to separate repo and branch
-            var repoParts = source.split('#');
-            var repoUrl = repoParts[0];
-            var branch = repoParts.length > 1 ? repoParts[1] : '';
-            // Format: repository/template-path#branch
-            templateUri = repoUrl + '/' + template.path + (branch ? '#' + branch : '');
+            // Parse the repository URI to separate repo and branch (reuse utils)
+            var parsed = separateRepoUrlPathBranch(source);
+            var repoUrl = parsed.repo;
+            var branch = parsed.branch;
+            var includeBranch = source.indexOf('#') !== -1 && !!branch;
+            // Format: repository/template-path[#branch]
+            templateUri = repoUrl + '/' + template.path + (includeBranch ? ('#' + branch) : '');
         }
         logInfo(cliName + ' ' + SDK.commands.createwithtemplate.name + ' --' + SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
     }

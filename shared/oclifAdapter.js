@@ -33,6 +33,7 @@ const templateHelper = require('./templateHelper');
 const jsonChecker = require('./jsonChecker');
 const logInfo = require('./utils').logInfo;
 const logError = require('./utils').logError;
+const separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch;
 const os = require('os');
 
 const { SfdxError } = require('@salesforce/core');
@@ -63,12 +64,13 @@ class OclifAdapter extends Command {
             // If using custom repository, include it in the command
             let templateUri = template.path;
             if (templateSourceOrRepoUri) {
-                // Parse the repository URI to separate repo and branch
-                const repoParts = templateSourceOrRepoUri.split('#');
-                const repoUrl = repoParts[0];
-                const branch = repoParts.length > 1 ? repoParts[1] : '';
-                // Format: repository/template-path#branch
-                templateUri = repoUrl + '/' + template.path + (branch ? '#' + branch : '');
+                // Parse the repository URI to separate repo and branch (reuse utils)
+                const parsed = separateRepoUrlPathBranch(templateSourceOrRepoUri);
+                const repoUrl = parsed.repo;
+                const branch = parsed.branch;
+                const includeBranch = templateSourceOrRepoUri.indexOf('#') !== -1 && !!branch;
+                // Format: repository/template-path[#branch]
+                templateUri = repoUrl + '/' + template.path + (includeBranch ? ('#' + branch) : '');
             }
             logInfo('sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':') + ' --' +
                 SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
