@@ -375,7 +375,13 @@ function actuallyCreateApp(forcecli, config) {
             }
         }
         else if (config.templaterepouri) {
-            if (!config.templaterepouri.startsWith("https://")) {
+            if (fs.existsSync(config.templaterepouri)) {
+                // Local path directly to a specific template directory
+                localTemplatesRoot = path.resolve(config.templaterepouri);
+                config.templaterepouri = localTemplatesRoot;
+                // Use the directory itself as the template root
+                config.templatepath = '';
+            } else if (!config.templaterepouri.startsWith("https://")) {
                 // Given a Mobile SDK template name
                 config.templatepath = config.templaterepouri;
                 config.templaterepouri = SDK.templatesRepoUri;

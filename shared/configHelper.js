@@ -147,18 +147,12 @@ function listTemplates(cli, commandLineArgs) {
     for (var i = 0; i < applicableTemplates.length; i++) {
         var template = applicableTemplates[i];
         logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
-        // If using custom repository, include it in the command
-        var templateUri = template.path;
-        if (source) {
-            // Parse the repository URI to separate repo and branch (reuse utils)
-            var parsed = separateRepoUrlPathBranch(source);
-            var repoUrl = parsed.repo;
-            var branch = parsed.branch;
-            var includeBranch = source.indexOf('#') !== -1 && !!branch;
-            // Format: repository/template-path[#branch]
-            templateUri = repoUrl + '/' + template.path + (includeBranch ? ('#' + branch) : '');
-        }
-        logInfo(cliName + ' ' + SDK.commands.createwithtemplate.name + ' --' + SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
+        // Always recommend using --templatesource and --template
+        var sourceForCommand = source || SDK.templatesRepoUri;
+        var command = cliName + ' ' + SDK.commands.createwithtemplate.name
+            + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+            + ' --' + SDK.args.template.name + '=' + template.path;
+        logInfo(command, COLOR.magenta);
     }
     logInfo('');
 }

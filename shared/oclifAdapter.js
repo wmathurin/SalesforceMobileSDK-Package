@@ -61,19 +61,12 @@ class OclifAdapter extends Command {
         for (let i = 0; i < applicableTemplates.length; i++) {
             const template = applicableTemplates[i];
             logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
-            // If using custom repository, include it in the command
-            let templateUri = template.path;
-            if (templateSourceOrRepoUri) {
-                // Parse the repository URI to separate repo and branch (reuse utils)
-                const parsed = separateRepoUrlPathBranch(templateSourceOrRepoUri);
-                const repoUrl = parsed.repo;
-                const branch = parsed.branch;
-                const includeBranch = templateSourceOrRepoUri.indexOf('#') !== -1 && !!branch;
-                // Format: repository/template-path[#branch]
-                templateUri = repoUrl + '/' + template.path + (includeBranch ? ('#' + branch) : '');
-            }
-            logInfo('sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':') + ' --' +
-                SDK.args.templateRepoUri.name + '=' + templateUri, COLOR.magenta);
+            // Recommend using --templatesource and --template
+            const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
+            const cmd = 'sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
+                + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+                + ' --' + SDK.args.template.name + '=' + template.path;
+            logInfo(cmd, COLOR.magenta);
         }
         logInfo('');
     }

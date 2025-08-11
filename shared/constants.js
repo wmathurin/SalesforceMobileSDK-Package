@@ -183,9 +183,8 @@ module.exports = {
             prompt: 'Enter git URL or local path to your templates suite:',
             error: cli => val => 'Invalid value for template source: \'' + val + '\'.',
             validate: cli => val => /\S+/.test(val),
-            // Do not prompt for this optional flag during interactive flows
-            // Tests and most users will not provide it; when provided explicitly, no prompt is needed
-            promptIf: otherArgs => false,
+            // Process only when explicitly provided to avoid prompting during interactive flows
+            promptIf: otherArgs => typeof otherArgs.templatesource !== 'undefined',
             required: false,
             type: 'string'
         },
