@@ -126,7 +126,7 @@ function listTemplates(cli, commandLineArgs) {
     if (commandLineArgs && commandLineArgs.length > 0) {
         try {
             var argsMap = commandLineUtils.parseArgs(commandLineArgs);
-            templateSource = argsMap[SDK.args.templateSource && SDK.args.templateSource.name];
+            templateSource = argsMap[SDK.args.templateSource.name];
             templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
         } catch (error) {
             // If argument parsing fails, continue without templateRepoUri
@@ -165,8 +165,8 @@ function usage(cli) {
 
     logInfo('\n' + cliName + ': Tool for building ' + cli.purpose + ' using Salesforce Mobile SDK', COLOR.cyan);
     logInfo('\nUsage:\n', COLOR.cyan);
-    for (var i = 0; i < cli.commands.length; i++) {
-        if (i > 0) {
+    for (var i=0; i<cli.commands.length; i++) {
+        if (i>0) {
             logInfo('\n OR \n', COLOR.cyan);
         }
         var commandName = cli.commands[i];
