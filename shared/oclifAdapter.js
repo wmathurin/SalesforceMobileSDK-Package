@@ -33,6 +33,7 @@ const templateHelper = require('./templateHelper');
 const jsonChecker = require('./jsonChecker');
 const logInfo = require('./utils').logInfo;
 const logError = require('./utils').logError;
+const separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch;
 const os = require('os');
 
 const { SfdxError } = require('@salesforce/core');
@@ -46,21 +47,32 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli) {
-        const applicableTemplates = templateHelper.getTemplates(cli);
+    static listTemplates(cli, templateSourceOrRepoUri) {
+        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri);
 
-        logInfo('\nAvailable templates:\n', COLOR.cyan);
-        for (let i=0; i<applicableTemplates.length; i++) {
+        // Show which template repository is being used
+        if (templateSourceOrRepoUri) {
+            logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
+            logInfo('Repository: ' + templateSourceOrRepoUri, COLOR.cyan);
+        } else {
+            logInfo('\nAvailable templates:\n', COLOR.cyan);
+        }
+
+        for (let i = 0; i < applicableTemplates.length; i++) {
             const template = applicableTemplates[i];
-            logInfo((i+1) + ') ' + template.description, COLOR.cyan);
-            logInfo('sfdx ' +  [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':') + ' --' +
-                SDK.args.templateRepoUri.name + '=' + template.path, COLOR.magenta);
+            logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+            // Recommend using --templatesource and --template
+            const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
+            const cmd = 'sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
+                + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+                + ' --' + SDK.args.template.name + '=' + template.path;
+            logInfo(cmd, COLOR.magenta);
         }
         logInfo('');
     }
 
     static runCommand(cli, commandName, vals) {
-        switch(commandName) {
+        switch (commandName) {
             case SDK.commands.create.name:
             case SDK.commands.createwithtemplate.name:
                 createHelper.createApp(cli, vals);
@@ -69,7 +81,7 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli);
+                OclifAdapter.listTemplates(cli, vals.templaterepouri);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
@@ -189,7 +201,7 @@ class OclifAdapter extends Command {
     }
 }
 
-OclifAdapter.getCommand = function(cli, commandName) {
+OclifAdapter.getCommand = function (cli, commandName) {
     if (!this._command) {
         this._command = configHelper.getCommandExpanded(cli, commandName);
     }

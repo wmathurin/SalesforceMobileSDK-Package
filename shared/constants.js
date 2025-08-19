@@ -171,6 +171,34 @@ module.exports = {
             prompt: 'Enter URI of repo containing template application or a Mobile SDK template name:',
             error: cli => val => 'Invalid value for template repo uri: \'' + val + '\'.',
             validate: cli => val => /^\S+$/.test(val),
+            promptIf: otherArgs => !otherArgs.templatesource,
+            required: false,
+            type: 'string'
+        },
+        templateSource: {
+            name: 'templatesource',
+            'char': 'S',
+            description: 'git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)',
+            longDescription: 'Location of a suite of templates. Can be a git URL with optional #branch suffix or a local filesystem path whose root contains templates.json.',
+            prompt: 'Enter git URL or local path to your templates suite:',
+            error: cli => val => 'Invalid value for template source: \'' + val + '\'.',
+            validate: cli => val => /\S+/.test(val),
+            // Process only when explicitly provided to avoid prompting during interactive flows
+            promptIf: otherArgs => typeof otherArgs.templatesource !== 'undefined',
+            required: false,
+            type: 'string'
+        },
+        template: {
+            name: 'template',
+            'char': 'm',
+            description: 'template name within the templates suite (e.g. ReactNativeTemplate)',
+            longDescription: 'Name of the template to use from the suite specified by --templatesource. Should match the directory name or the path field in templates.json.',
+            prompt: 'Enter the template name from your template source:',
+            error: cli => val => 'Invalid value for template: \'' + val + '\'.',
+            validate: cli => val => /\S+/.test(val),
+            // Only prompt for template when a templatesource is provided
+            promptIf: otherArgs => !!otherArgs.templatesource,
+            required: false,
             type: 'string'
         },
         appName: {
@@ -301,7 +329,9 @@ module.exports = {
         createwithtemplate: {
             name: 'createwithtemplate',
             args: cli => [cli.platforms.length > 1 ? 'platform' : null,
+                          'templateSource',
                           'templateRepoUri',
+                          'template',
                           'appName',
                           'packageName',
                           'organization',
@@ -309,7 +339,7 @@ module.exports = {
                           'outputDir',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
-			  'sdkDependencies'			  
+                          'sdkDependencies'              
                          ].filter(x=>x!=null),
             description: cli => 'create ' + cli.purpose + ' from a template',
             longDescription: cli => 'Create ' + cli.purpose + ' from a template.',
@@ -324,10 +354,10 @@ module.exports = {
         },
         listtemplates: {
             name: 'listtemplates',
-            args: [],
+            args: ['templateSource'],
             description: cli => 'list available Mobile SDK templates to create ' + cli.purpose,
             longDescription: cli => 'List available Mobile SDK templates to create ' + cli.purpose + '.',
-            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command.'
+            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository.'
         },
         checkconfig: {
             name: 'checkconfig',
