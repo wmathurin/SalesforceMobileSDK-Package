@@ -54,7 +54,8 @@
     "files": [
         "/shared/**/*.js",
         "/oclif/**/*.js",
-        "/bin"
+        "/bin",
+        "oclif.manifest.json"
     ],
     "oclif": {
         "commands": "./oclif",

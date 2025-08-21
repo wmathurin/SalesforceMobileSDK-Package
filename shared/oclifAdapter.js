@@ -63,9 +63,12 @@ class OclifAdapter extends Command {
             logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
             // Recommend using --templatesource and --template
             const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
-            const cmd = 'sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
+            const cmd = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
                 + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
-                + ' --' + SDK.args.template.name + '=' + template.path;
+                + ' --' + SDK.args.template.name + '=' + template.path
+                + ' --' + SDK.args.appName.name + '=<YOUR_APP_NAME>'
+                + ' --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME>'
+                + ' --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
             logInfo(cmd, COLOR.magenta);
         }
         logInfo('');
@@ -81,7 +84,7 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli, vals.templaterepouri);
+                OclifAdapter.listTemplates(cli, vals.templatesource);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
