@@ -47,8 +47,8 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli, templateSourceOrRepoUri) {
-        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri);
+    static listTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
+        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri, includeDescriptions);
 
         // Show which template repository is being used
         if (templateSourceOrRepoUri) {
@@ -61,6 +61,12 @@ class OclifAdapter extends Command {
         for (let i = 0; i < applicableTemplates.length; i++) {
             const template = applicableTemplates[i];
             logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+            
+            // If descriptions are requested and available, show them
+            if (includeDescriptions && template.descriptionText) {
+                logInfo('   ' + template.descriptionText, COLOR.white);
+            }
+            
             // Recommend using --templatesource and --template
             const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
             const cmd = 'sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
@@ -81,7 +87,7 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli, vals.templaterepouri);
+                OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:

@@ -125,18 +125,20 @@ function listTemplates(cli, commandLineArgs) {
     // Parse command line arguments to extract templatesource or templaterepouri
     var templateSource = null;
     var templateRepoUri = null;
+    var includeDescriptions = false;
     if (commandLineArgs && commandLineArgs.length > 0) {
         try {
             var argsMap = commandLineUtils.parseArgs(commandLineArgs);
             templateSource = argsMap[SDK.args.templateSource.name];
             templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
+            includeDescriptions = argsMap.hasOwnProperty(SDK.args.doc.name);
         } catch (error) {
             // If argument parsing fails, continue without templateRepoUri
         }
     }
 
     var source = templateSource || templateRepoUri;
-    var applicableTemplates = getTemplates(cli, source);
+    var applicableTemplates = getTemplates(cli, source, includeDescriptions);
 
     // Show which template repository is being used
     if (source) {
@@ -149,6 +151,12 @@ function listTemplates(cli, commandLineArgs) {
     for (var i = 0; i < applicableTemplates.length; i++) {
         var template = applicableTemplates[i];
         logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+        
+        // If descriptions are requested and available, show them
+        if (includeDescriptions && template.descriptionText) {
+            logInfo('   ' + template.descriptionText, COLOR.white);
+        }
+        
         // Always recommend using --templatesource and --template
         var sourceForCommand = source || SDK.templatesRepoUri;
         var command = cliName + ' ' + SDK.commands.createwithtemplate.name

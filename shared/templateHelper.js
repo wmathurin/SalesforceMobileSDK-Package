@@ -46,7 +46,7 @@ function prepareTemplate(config, templateDir) {
 //
 // Get templates for the given cli
 //
-function getTemplates(cli, templateSourceOrRepoUri) {
+function getTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
     try {
 
         // Creating tmp dir for template clone
@@ -70,6 +70,12 @@ function getTemplates(cli, templateSourceOrRepoUri) {
         var applicableTemplates = templates
             .filter(template => cli.appTypes.includes(template.appType) && cli.platforms.filter(platform => template.platforms.includes(platform)).length > 0);
 
+        // If descriptions are requested, add them to each template
+        if (includeDescriptions) {
+            applicableTemplates.forEach(function(template) {
+                template.descriptionText = getTemplateDescription(template.path, repoDir);
+            });
+        }
 
         // Cleanup
         utils.removeFile(tmpDir);
@@ -106,9 +112,36 @@ function getAppTypeFromTemplate(templateRepoUriWithPossiblePath) {
     return appType;
 }
 
+//
+// Extract description section from template README.md file
+//
+function getTemplateDescription(templatePath, repoDir) {
+    try {
+        var readmePath = path.join(repoDir, templatePath, 'README.md');
+        if (fs.existsSync(readmePath)) {
+            var readmeContent = fs.readFileSync(readmePath, 'utf8');
+            
+            // Look for ## Description heading and extract content until next heading
+            var descriptionMatch = readmeContent.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##\s|$)/);
+            if (descriptionMatch && descriptionMatch[1]) {
+                // Clean up the description text
+                var description = descriptionMatch[1]
+                    .replace(/^\s+|\s+$/g, '') // Trim whitespace
+                    .replace(/\n\s*\n/g, '\n') // Remove extra blank lines
+                    .trim();
+                return description;
+            }
+        }
+    } catch (error) {
+        // If there's any error reading or parsing the README, just return null
+        // This ensures the command continues to work even if README parsing fails
+    }
+    return null;
+}
 
 module.exports = {
     prepareTemplate,
     getTemplates,
-    getAppTypeFromTemplate
+    getAppTypeFromTemplate,
+    getTemplateDescription
 };
