@@ -34,7 +34,9 @@ var path = require('path'),
     logInfo = require('./utils').logInfo,
     separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch,
     getTemplates = require('./templateHelper').getTemplates,
+    getTemplate = require('./templateHelper').getTemplate,
     displayTemplateList = require('./templateHelper').displayTemplateList,
+    displayTemplateDetail = require('./templateHelper').displayTemplateDetail,
     validateJson = require('./jsonChecker').validateJson;
 
 function applyCli(f, cli) {
@@ -102,6 +104,10 @@ function readConfig(args, cli, handler) {
             listTemplates(cli, commandLineArgs);
             process.exit(0);
             break;
+        case SDK.commands.listtemplate.name:
+            listTemplate(cli, commandLineArgs);
+            process.exit(0);
+            break;
         default:
             usage(cli);
             process.exit(1);
@@ -144,6 +150,45 @@ function listTemplates(cli, commandLineArgs) {
     // Use shared display function
     var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
     displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions, null);
+}
+
+function listTemplate(cli, commandLineArgs) {
+    var cliName = cli.name;
+
+    // Parse command line arguments to extract templatesource, template, and doc
+    var templateSource = null;
+    var templateRepoUri = null;
+    var templateName = null;
+    var includeDescriptions = false;
+    if (commandLineArgs && commandLineArgs.length > 0) {
+        try {
+            var argsMap = commandLineUtils.parseArgs(commandLineArgs);
+            templateSource = argsMap[SDK.args.templateSource.name];
+            templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
+            templateName = argsMap[SDK.args.template.name];
+            includeDescriptions = argsMap.hasOwnProperty(SDK.args.doc.name);
+        } catch (error) {
+            // If argument parsing fails, continue without templateRepoUri
+        }
+    }
+
+    // Check if template name is provided
+    if (!templateName) {
+        logInfo('Error: Template name is required. Use --template to specify the template name.', COLOR.red);
+        process.exit(1);
+    }
+
+    var source = templateSource || templateRepoUri;
+    var template = getTemplate(templateName, source, includeDescriptions);
+
+    if (!template) {
+        logInfo('Error: Template "' + templateName + '" not found.', COLOR.red);
+        process.exit(1);
+    }
+
+    // Use shared display function
+    var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
+    displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, null);
 }
 
 function usage(cli) {

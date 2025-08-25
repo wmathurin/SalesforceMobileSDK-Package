@@ -95,7 +95,7 @@ module.exports = {
                 'native': 'iOSNativeTemplate',
                 'native_swift': 'iOSNativeSwiftTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'listtemplate', 'checkconfig']
         },
         forcedroid: {
             name: 'forcedroid',
@@ -109,7 +109,7 @@ module.exports = {
                 'native': 'AndroidNativeTemplate',
                 'native_kotlin': 'AndroidNativeKotlinTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'listtemplate', 'checkconfig']
         },
         forcehybrid: {
             name: 'forcehybrid',
@@ -123,7 +123,7 @@ module.exports = {
                 'hybrid_local': 'HybridLocalTemplate',
                 'hybrid_remote': 'HybridRemoteTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'listtemplate', 'checkconfig']
         },
         forcereact: {
             name: 'forcereact',
@@ -137,7 +137,7 @@ module.exports = {
                 'react_native': 'ReactNativeTemplate',
                 'react_native_typescript': 'ReactNativeTypeScriptTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'listtemplate', 'checkconfig']
         }
     },
 
@@ -370,6 +370,13 @@ module.exports = {
             description: cli => 'list available Mobile SDK templates to create ' + cli.purpose,
             longDescription: cli => 'List available Mobile SDK templates to create ' + cli.purpose + '.',
             help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include detailed metadata from template.json files (displayName, description, useCase, features, complexity).'
+        },
+        listtemplate: {
+            name: 'listtemplate',
+            args: ['templateSource', 'template', 'doc'],
+            description: cli => 'list details for a specific Mobile SDK template to create ' + cli.purpose,
+            longDescription: cli => 'List details for a specific Mobile SDK template to create ' + cli.purpose + '.',
+            help: 'This command displays detailed information about a specific Mobile SDK template. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --template to specify the template name. Use --doc to include verbose metadata from template.json files.'
         },
         checkconfig: {
             name: 'checkconfig',

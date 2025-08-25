@@ -30,7 +30,7 @@ const SDK = require('./constants');
 const configHelper = require('./configHelper');
 const createHelper = require('./createHelper');
 const templateHelper = require('./templateHelper');
-const { getTemplates, displayTemplateList } = require('./templateHelper');
+const { getTemplates, getTemplate, displayTemplateList, displayTemplateDetail } = require('./templateHelper');
 const jsonChecker = require('./jsonChecker');
 const logInfo = require('./utils').logInfo;
 const logError = require('./utils').logError;
@@ -57,6 +57,25 @@ class OclifAdapter extends Command {
         displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample);
     }
 
+    static listTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions) {
+        if (!templateName) {
+            logError('Error: Template name is required. Use --template to specify the template name.');
+            process.exit(1);
+        }
+
+        const template = getTemplate(templateName, templateSourceOrRepoUri, includeDescriptions);
+
+        if (!template) {
+            logError('Error: Template "' + templateName + '" not found.');
+            process.exit(1);
+        }
+
+        // Use shared display function
+        const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
+        const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
+        displayTemplateDetail(template, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample);
+    }
+
     static runCommand(cli, commandName, vals) {
         switch (commandName) {
             case SDK.commands.create.name:
@@ -68,6 +87,10 @@ class OclifAdapter extends Command {
                 break;
             case SDK.commands.listtemplates.name:
                 OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc);
+                process.exit(0);
+                break;
+            case SDK.commands.listtemplate.name:
+                OclifAdapter.listTemplate(cli, vals.templatesource, vals.template, vals.doc);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
