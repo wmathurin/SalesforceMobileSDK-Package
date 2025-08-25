@@ -53,7 +53,8 @@ class OclifAdapter extends Command {
 
         // Use shared display function
         const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
-        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions);
+        const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
+        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample);
     }
 
     static runCommand(cli, commandName, vals) {

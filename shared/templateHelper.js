@@ -136,7 +136,7 @@ function getTemplateMetadata(templatePath, repoDir) {
 //
 // Display template list with optional metadata
 //
-function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions) {
+function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs) {
     var utils = require('./utils');
     var COLOR = require('./outputColors');
     var logInfo = utils.logInfo;
@@ -157,6 +157,12 @@ function displayTemplateList(templates, source, cliName, commandPrefix, includeD
         var sourceForCommand = source || SDK.templatesRepoUri;
         var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
             + ' --' + SDK.args.template.name + '=' + template.path;
+        
+        // Add additional required args if provided
+        if (extraRequiredArgs) {
+            command += ` ${extraRequiredArgs}`;
+        }
+        
         logInfo(command, COLOR.magenta);
         
         // If descriptions are requested and available, show them

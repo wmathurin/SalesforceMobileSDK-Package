@@ -143,7 +143,7 @@ function listTemplates(cli, commandLineArgs) {
 
     // Use shared display function
     var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
-    displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions);
+    displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions, null);
 }
 
 function usage(cli) {
