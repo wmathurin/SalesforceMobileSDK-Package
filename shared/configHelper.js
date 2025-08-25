@@ -133,12 +133,14 @@ function listTemplates(cli, commandLineArgs) {
     var templateSource = null;
     var templateRepoUri = null;
     var includeDescriptions = false;
+    var outputJson = false;
     if (commandLineArgs && commandLineArgs.length > 0) {
         try {
             var argsMap = commandLineUtils.parseArgs(commandLineArgs);
             templateSource = argsMap[SDK.args.templateSource.name];
             templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
             includeDescriptions = argsMap.hasOwnProperty(SDK.args.doc.name);
+            outputJson = argsMap.hasOwnProperty(SDK.args.json.name);
         } catch (error) {
             // If argument parsing fails, continue without templateRepoUri
         }
@@ -149,7 +151,7 @@ function listTemplates(cli, commandLineArgs) {
 
     // Use shared display function
     var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
-    displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions, null);
+    displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions, null, outputJson);
 }
 
 function listTemplate(cli, commandLineArgs) {
@@ -160,6 +162,7 @@ function listTemplate(cli, commandLineArgs) {
     var templateRepoUri = null;
     var templateName = null;
     var includeDescriptions = false;
+    var outputJson = false;
     if (commandLineArgs && commandLineArgs.length > 0) {
         try {
             var argsMap = commandLineUtils.parseArgs(commandLineArgs);
@@ -167,6 +170,7 @@ function listTemplate(cli, commandLineArgs) {
             templateRepoUri = argsMap[SDK.args.templateRepoUri.name];
             templateName = argsMap[SDK.args.template.name];
             includeDescriptions = argsMap.hasOwnProperty(SDK.args.doc.name);
+            outputJson = argsMap.hasOwnProperty(SDK.args.json.name);
         } catch (error) {
             // If argument parsing fails, continue without templateRepoUri
         }
@@ -188,7 +192,7 @@ function listTemplate(cli, commandLineArgs) {
 
     // Use shared display function
     var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
-    displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, null);
+    displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, null, outputJson);
 }
 
 function usage(cli) {

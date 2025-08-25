@@ -180,11 +180,45 @@ function getTemplate(templateName, templateSourceOrRepoUri, includeDescriptions)
 //
 // Display template list with optional metadata
 //
-function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs) {
+function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs, outputJson) {
     var utils = require('./utils');
     var COLOR = require('./outputColors');
     var logInfo = utils.logInfo;
     var SDK = require('./constants');
+
+    if (outputJson) {
+        // Output in JSON format
+        var jsonOutput = {
+            repository: source || 'default',
+            templates: templates.map(function(template, index) {
+                var sourceForCommand = source || SDK.templatesRepoUri;
+                var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+                    + ' --' + SDK.args.template.name + '=' + template.path;
+                
+                if (extraRequiredArgs) {
+                    command += ` ${extraRequiredArgs}`;
+                }
+
+                var jsonTemplate = {
+                    index: index + 1,
+                    path: template.path,
+                    description: template.description,
+                    appType: template.appType,
+                    platforms: template.platforms,
+                    command: command
+                };
+
+                if (includeDescriptions && template.metadata) {
+                    jsonTemplate.metadata = template.metadata;
+                }
+
+                return jsonTemplate;
+            })
+        };
+        
+        logInfo(JSON.stringify(jsonOutput, null, 2), COLOR.white);
+        return;
+    }
 
     // Show which template repository is being used
     if (source) {
@@ -231,11 +265,40 @@ function displayTemplateList(templates, source, cliName, commandPrefix, includeD
 //
 // Display detailed information about a single template
 //
-function displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs) {
+function displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs, outputJson) {
     var utils = require('./utils');
     var COLOR = require('./outputColors');
     var logInfo = utils.logInfo;
     var SDK = require('./constants');
+
+    if (outputJson) {
+        // Output in JSON format
+        var sourceForCommand = source || SDK.templatesRepoUri;
+        var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+            + ' --' + SDK.args.template.name + '=' + template.path;
+        
+        if (extraRequiredArgs) {
+            command += ` ${extraRequiredArgs}`;
+        }
+
+        var jsonOutput = {
+            repository: source || 'default',
+            template: {
+                path: template.path,
+                description: template.description,
+                appType: template.appType,
+                platforms: template.platforms,
+                command: command
+            }
+        };
+
+        if (includeDescriptions && template.metadata) {
+            jsonOutput.template.metadata = template.metadata;
+        }
+        
+        logInfo(JSON.stringify(jsonOutput, null, 2), COLOR.white);
+        return;
+    }
 
     // Show which template repository is being used
     if (source) {

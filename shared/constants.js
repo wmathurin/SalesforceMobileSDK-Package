@@ -305,7 +305,7 @@ module.exports = {
             required: false,
             type: 'string',
             hidden: true
-	},
+	        },
         doc: {
             name: 'doc',
             'char': 'D',
@@ -313,6 +313,18 @@ module.exports = {
             longDescription: 'When specified, includes detailed metadata from each template\'s template.json file if available (displayName, description, useCase, features, complexity).',
             prompt: null,
             error: cli => val => 'Invalid value for doc flag: \'' + val + '\'.',
+            validate: cli => val => true, // Boolean flag, no validation needed
+            required: false,
+            type: 'boolean',
+            hidden: false
+        },
+        json: {
+            name: 'json',
+            'char': 'j',
+            description: 'output response in JSON format',
+            longDescription: 'When specified, outputs the response in JSON format instead of human-readable text. Useful for programmatic consumption.',
+            prompt: null,
+            error: cli => val => 'Invalid value for json flag: \'' + val + '\'.',
             validate: cli => val => true, // Boolean flag, no validation needed
             required: false,
             type: 'boolean',
@@ -366,17 +378,17 @@ module.exports = {
         },
         listtemplates: {
             name: 'listtemplates',
-            args: ['templateSource', 'doc'],
+            args: ['templateSource', 'doc', 'json'],
             description: cli => 'list available Mobile SDK templates to create ' + cli.purpose,
             longDescription: cli => 'List available Mobile SDK templates to create ' + cli.purpose + '.',
-            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include detailed metadata from template.json files (displayName, description, useCase, features, complexity).'
+            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include detailed metadata from template.json files (displayName, description, useCase, features, complexity). Use --json to output the response in JSON format.'
         },
         listtemplate: {
             name: 'listtemplate',
-            args: ['templateSource', 'template', 'doc'],
+            args: ['templateSource', 'template', 'doc', 'json'],
             description: cli => 'list details for a specific Mobile SDK template to create ' + cli.purpose,
             longDescription: cli => 'List details for a specific Mobile SDK template to create ' + cli.purpose + '.',
-            help: 'This command displays detailed information about a specific Mobile SDK template. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --template to specify the template name. Use --doc to include verbose metadata from template.json files.'
+            help: 'This command displays detailed information about a specific Mobile SDK template. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --template to specify the template name. Use --doc to include verbose metadata from template.json files. Use --json to output the response in JSON format.'
         },
         checkconfig: {
             name: 'checkconfig',

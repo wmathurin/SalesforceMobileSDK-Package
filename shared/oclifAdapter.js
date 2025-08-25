@@ -48,16 +48,16 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
+    static listTemplates(cli, templateSourceOrRepoUri, includeDescriptions, outputJson) {
         const applicableTemplates = getTemplates(cli, templateSourceOrRepoUri, includeDescriptions);
 
         // Use shared display function
         const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
         const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
-        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample);
+        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample, outputJson);
     }
 
-    static listTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions) {
+    static listTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions, outputJson) {
         if (!templateName) {
             logError('Error: Template name is required. Use --template to specify the template name.');
             process.exit(1);
@@ -73,7 +73,7 @@ class OclifAdapter extends Command {
         // Use shared display function
         const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
         const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
-        displayTemplateDetail(template, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample);
+        displayTemplateDetail(template, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample, outputJson);
     }
 
     static runCommand(cli, commandName, vals) {
@@ -86,11 +86,11 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc);
+                OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc, vals.json);
                 process.exit(0);
                 break;
             case SDK.commands.listtemplate.name:
-                OclifAdapter.listTemplate(cli, vals.templatesource, vals.template, vals.doc);
+                OclifAdapter.listTemplate(cli, vals.templatesource, vals.template, vals.doc, vals.json);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
