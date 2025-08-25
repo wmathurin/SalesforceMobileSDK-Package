@@ -73,7 +73,7 @@ function getTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
         // If descriptions are requested, add them to each template
         if (includeDescriptions) {
             applicableTemplates.forEach(function(template) {
-                template.descriptionText = getTemplateDescription(template.path, repoDir);
+                template.metadata = getTemplateMetadata(template.path, repoDir);
             });
         }
 
@@ -113,35 +113,75 @@ function getAppTypeFromTemplate(templateRepoUriWithPossiblePath) {
 }
 
 //
-// Extract description section from template README.md file
+// Extract template metadata from template.json file
 //
-function getTemplateDescription(templatePath, repoDir) {
+function getTemplateMetadata(templatePath, repoDir) {
     try {
-        var readmePath = path.join(repoDir, templatePath, 'README.md');
-        if (fs.existsSync(readmePath)) {
-            var readmeContent = fs.readFileSync(readmePath, 'utf8');
+        var templateJsonPath = path.join(repoDir, templatePath, 'template.json');
+        if (fs.existsSync(templateJsonPath)) {
+            var templateJsonContent = fs.readFileSync(templateJsonPath, 'utf8');
+            var templateData = JSON.parse(templateJsonContent);
             
-            // Look for ## Description heading and extract content until next heading
-            var descriptionMatch = readmeContent.match(/##\s*Description\s*\n([\s\S]*?)(?=\n##\s|$)/);
-            if (descriptionMatch && descriptionMatch[1]) {
-                // Clean up the description text
-                var description = descriptionMatch[1]
-                    .replace(/^\s+|\s+$/g, '') // Trim whitespace
-                    .replace(/\n\s*\n/g, '\n') // Remove extra blank lines
-                    .trim();
-                return description;
-            }
+            // Return all metadata properties from the template.json file
+            // This makes the function more flexible for future use cases
+            return templateData;
         }
     } catch (error) {
-        // If there's any error reading or parsing the README, just return null
-        // This ensures the command continues to work even if README parsing fails
+        // If there's any error reading or parsing the template.json, just return null
+        // This ensures the command continues to work even if template.json parsing fails
     }
     return null;
+}
+
+//
+// Display template list with optional metadata
+//
+function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions) {
+    var utils = require('./utils');
+    var COLOR = require('./outputColors');
+    var logInfo = utils.logInfo;
+    var SDK = require('./constants');
+
+    // Show which template repository is being used
+    if (source) {
+        logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
+        logInfo('Repository: ' + source, COLOR.cyan);
+    } else {
+        logInfo('\nAvailable templates:\n', COLOR.cyan);
+    }
+
+    for (var i = 0; i < templates.length; i++) {
+        var template = templates[i];
+        logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+
+        var sourceForCommand = source || SDK.templatesRepoUri;
+        var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+            + ' --' + SDK.args.template.name + '=' + template.path;
+        logInfo(command, COLOR.magenta);
+        
+        // If descriptions are requested and available, show them
+        if (includeDescriptions && template.metadata) {
+            if (template.metadata.description) {
+                logInfo('   Description: ' + template.metadata.description, COLOR.white);
+            }
+            if (template.metadata.useCase) {
+                logInfo('   Use Case: ' + template.metadata.useCase, COLOR.white);
+            }
+            if (template.metadata.features && Array.isArray(template.metadata.features)) {
+                logInfo('   Features: ' + template.metadata.features.join(', '), COLOR.white);
+            }
+            if (template.metadata.complexity) {
+                logInfo('   Complexity: ' + template.metadata.complexity, COLOR.white);
+            }
+        }
+    }
+    logInfo('');
 }
 
 module.exports = {
     prepareTemplate,
     getTemplates,
     getAppTypeFromTemplate,
-    getTemplateDescription
+    getTemplateMetadata,
+    displayTemplateList
 };

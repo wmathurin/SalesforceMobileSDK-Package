@@ -309,8 +309,8 @@ module.exports = {
         doc: {
             name: 'doc',
             'char': 'D',
-            description: 'include verbose documentation from template README.md files',
-            longDescription: 'When specified, includes the description section from each template\'s README.md file if available.',
+            description: 'include verbose documentation from template.json files',
+            longDescription: 'When specified, includes detailed metadata from each template\'s template.json file if available (displayName, description, useCase, features, complexity).',
             prompt: null,
             error: cli => val => 'Invalid value for doc flag: \'' + val + '\'.',
             validate: cli => val => true, // Boolean flag, no validation needed
@@ -369,7 +369,7 @@ module.exports = {
             args: ['templateSource', 'doc'],
             description: cli => 'list available Mobile SDK templates to create ' + cli.purpose,
             longDescription: cli => 'List available Mobile SDK templates to create ' + cli.purpose + '.',
-            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include verbose documentation from template README.md files.'
+            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include detailed metadata from template.json files (displayName, description, useCase, features, complexity).'
         },
         checkconfig: {
             name: 'checkconfig',

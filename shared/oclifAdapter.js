@@ -30,6 +30,7 @@ const SDK = require('./constants');
 const configHelper = require('./configHelper');
 const createHelper = require('./createHelper');
 const templateHelper = require('./templateHelper');
+const { getTemplates, displayTemplateList } = require('./templateHelper');
 const jsonChecker = require('./jsonChecker');
 const logInfo = require('./utils').logInfo;
 const logError = require('./utils').logError;
@@ -48,33 +49,11 @@ class OclifAdapter extends Command {
     }
 
     static listTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
-        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri, includeDescriptions);
+        const applicableTemplates = getTemplates(cli, templateSourceOrRepoUri, includeDescriptions);
 
-        // Show which template repository is being used
-        if (templateSourceOrRepoUri) {
-            logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
-            logInfo('Repository: ' + templateSourceOrRepoUri, COLOR.cyan);
-        } else {
-            logInfo('\nAvailable templates:\n', COLOR.cyan);
-        }
-
-        for (let i = 0; i < applicableTemplates.length; i++) {
-            const template = applicableTemplates[i];
-            logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
-            
-            // If descriptions are requested and available, show them
-            if (includeDescriptions && template.descriptionText) {
-                logInfo('   ' + template.descriptionText, COLOR.white);
-            }
-            
-            // Recommend using --templatesource and --template
-            const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
-            const cmd = 'sfdx ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
-                + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
-                + ' --' + SDK.args.template.name + '=' + template.path;
-            logInfo(cmd, COLOR.magenta);
-        }
-        logInfo('');
+        // Use shared display function
+        const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
+        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions);
     }
 
     static runCommand(cli, commandName, vals) {

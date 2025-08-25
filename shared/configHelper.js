@@ -34,6 +34,7 @@ var path = require('path'),
     logInfo = require('./utils').logInfo,
     separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch,
     getTemplates = require('./templateHelper').getTemplates,
+    displayTemplateList = require('./templateHelper').displayTemplateList,
     validateJson = require('./jsonChecker').validateJson;
 
 function applyCli(f, cli) {
@@ -140,31 +141,9 @@ function listTemplates(cli, commandLineArgs) {
     var source = templateSource || templateRepoUri;
     var applicableTemplates = getTemplates(cli, source, includeDescriptions);
 
-    // Show which template repository is being used
-    if (source) {
-        logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
-        logInfo('Repository: ' + source, COLOR.cyan);
-    } else {
-        logInfo('\nAvailable templates:\n', COLOR.cyan);
-    }
-
-    for (var i = 0; i < applicableTemplates.length; i++) {
-        var template = applicableTemplates[i];
-        logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
-        
-        // If descriptions are requested and available, show them
-        if (includeDescriptions && template.descriptionText) {
-            logInfo('   ' + template.descriptionText, COLOR.white);
-        }
-        
-        // Always recommend using --templatesource and --template
-        var sourceForCommand = source || SDK.templatesRepoUri;
-        var command = cliName + ' ' + SDK.commands.createwithtemplate.name
-            + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
-            + ' --' + SDK.args.template.name + '=' + template.path;
-        logInfo(command, COLOR.magenta);
-    }
-    logInfo('');
+    // Use shared display function
+    var commandPrefix = cliName + ' ' + SDK.commands.createwithtemplate.name;
+    displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions);
 }
 
 function usage(cli) {
