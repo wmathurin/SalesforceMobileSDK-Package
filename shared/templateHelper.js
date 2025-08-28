@@ -46,7 +46,7 @@ function prepareTemplate(config, templateDir) {
 //
 // Get templates for the given cli
 //
-function getTemplates(cli, templateSourceOrRepoUri) {
+function getTemplates(cli, templateSourceOrRepoUri, includeDescriptions) {
     try {
 
         // Creating tmp dir for template clone
@@ -70,6 +70,12 @@ function getTemplates(cli, templateSourceOrRepoUri) {
         var applicableTemplates = templates
             .filter(template => cli.appTypes.includes(template.appType) && cli.platforms.filter(platform => template.platforms.includes(platform)).length > 0);
 
+        // If descriptions are requested, add them to each template
+        if (includeDescriptions) {
+            applicableTemplates.forEach(function(template) {
+                template.metadata = getTemplateMetadata(template.path, repoDir);
+            });
+        }
 
         // Cleanup
         utils.removeFile(tmpDir);
@@ -106,9 +112,236 @@ function getAppTypeFromTemplate(templateRepoUriWithPossiblePath) {
     return appType;
 }
 
+//
+// Extract template metadata from template.json file
+//
+function getTemplateMetadata(templatePath, repoDir) {
+    try {
+        var templateJsonPath = path.join(repoDir, templatePath, 'template.json');
+        if (fs.existsSync(templateJsonPath)) {
+            var templateJsonContent = fs.readFileSync(templateJsonPath, 'utf8');
+            var templateData = JSON.parse(templateJsonContent);
+            
+            // Return all metadata properties from the template.json file
+            // This makes the function more flexible for future use cases
+            return templateData;
+        }
+    } catch (error) {
+        // If there's any error reading or parsing the template.json, just return null
+        // This ensures the command continues to work even if template.json parsing fails
+    }
+    return null;
+}
+
+//
+// Get a single template by name
+//
+function getTemplate(templateName, templateSourceOrRepoUri, includeDescriptions) {
+    try {
+        // Creating tmp dir for template clone
+        var tmpDir = utils.mkTmpDir();
+
+        // Use provided source (git URL or local path) or fall back to default
+        var source = templateSourceOrRepoUri || SDK.templatesRepoUri;
+        var repoDir;
+        if (fs.existsSync(source)) {
+            // Local path
+            repoDir = path.resolve(source);
+        } else {
+            // Git URL
+            repoDir = utils.cloneRepo(tmpDir, source);
+        }
+
+        // Getting list of templates
+        var templates = require(path.join(repoDir, 'templates.json'));
+
+        // Finding the specific template
+        var template = templates.find(t => t.path === templateName);
+        
+        if (!template) {
+            utils.removeFile(tmpDir);
+            return null;
+        }
+        
+        // If descriptions are requested, add metadata
+        if (includeDescriptions) {
+            template.metadata = getTemplateMetadata(template.path, repoDir);
+        }
+        
+        // Cleanup
+        utils.removeFile(tmpDir);
+        
+        return template;
+    } catch (error) {
+        return null;
+    }
+}
+
+//
+// Display template list with optional metadata
+//
+function displayTemplateList(templates, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs, outputJson) {
+    var utils = require('./utils');
+    var COLOR = require('./outputColors');
+    var logInfo = utils.logInfo;
+    var SDK = require('./constants');
+
+    if (outputJson) {
+        // Output in JSON format
+        var jsonOutput = {
+            repository: source || 'default',
+            templates: templates.map(function(template, index) {
+                var sourceForCommand = source || SDK.templatesRepoUri;
+                var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+                    + ' --' + SDK.args.template.name + '=' + template.path;
+                
+                if (extraRequiredArgs) {
+                    command += ` ${extraRequiredArgs}`;
+                }
+
+                var jsonTemplate = {
+                    index: index + 1,
+                    path: template.path,
+                    description: template.description,
+                    appType: template.appType,
+                    platforms: template.platforms,
+                    command: command
+                };
+
+                if (includeDescriptions && template.metadata) {
+                    jsonTemplate.metadata = template.metadata;
+                }
+
+                return jsonTemplate;
+            })
+        };
+        
+        logInfo(JSON.stringify(jsonOutput, null, 2), COLOR.white);
+        return;
+    }
+
+    // Show which template repository is being used
+    if (source) {
+        logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
+        logInfo('Repository: ' + source, COLOR.cyan);
+    } else {
+        logInfo('\nAvailable templates:\n', COLOR.cyan);
+    }
+
+    for (var i = 0; i < templates.length; i++) {
+        var template = templates[i];
+        logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
+
+        var sourceForCommand = source || SDK.templatesRepoUri;
+        var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+            + ' --' + SDK.args.template.name + '=' + template.path;
+        
+        // Add additional required args if provided
+        if (extraRequiredArgs) {
+            command += ` ${extraRequiredArgs}`;
+        }
+        
+        logInfo(command, COLOR.magenta);
+        
+        // If descriptions are requested and available, show them
+        if (includeDescriptions && template.metadata) {
+            if (template.metadata.description) {
+                logInfo('   Description: ' + template.metadata.description, COLOR.white);
+            }
+            if (template.metadata.useCase) {
+                logInfo('   Use Case: ' + template.metadata.useCase, COLOR.white);
+            }
+            if (template.metadata.features && Array.isArray(template.metadata.features)) {
+                logInfo('   Features: ' + template.metadata.features.join(', '), COLOR.white);
+            }
+            if (template.metadata.complexity) {
+                logInfo('   Complexity: ' + template.metadata.complexity, COLOR.white);
+            }
+        }
+    }
+    logInfo('');
+}
+
+//
+// Display detailed information about a single template
+//
+function displayTemplateDetail(template, source, cliName, commandPrefix, includeDescriptions, extraRequiredArgs, outputJson) {
+    var utils = require('./utils');
+    var COLOR = require('./outputColors');
+    var logInfo = utils.logInfo;
+    var SDK = require('./constants');
+
+    if (outputJson) {
+        // Output in JSON format
+        var sourceForCommand = source || SDK.templatesRepoUri;
+        var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+            + ' --' + SDK.args.template.name + '=' + template.path;
+        
+        if (extraRequiredArgs) {
+            command += ` ${extraRequiredArgs}`;
+        }
+
+        var jsonOutput = {
+            repository: source || 'default',
+            template: {
+                path: template.path,
+                description: template.description,
+                appType: template.appType,
+                platforms: template.platforms,
+                command: command
+            }
+        };
+
+        if (includeDescriptions && template.metadata) {
+            jsonOutput.template.metadata = template.metadata;
+        }
+        
+        logInfo(JSON.stringify(jsonOutput, null, 2), COLOR.white);
+        return;
+    }
+
+    // Show which template repository is being used
+    if (source) {
+        logInfo('\nTemplate from custom repository:\n', COLOR.cyan);
+        logInfo('Repository: ' + source, COLOR.cyan);
+    } else {
+        logInfo('\nTemplate from default repository:\n', COLOR.cyan);
+    }
+
+    // Display template basic info
+    logInfo('Template: ' + template.path, COLOR.cyan);
+    logInfo('Description: ' + template.description, COLOR.cyan);
+    logInfo('App Type: ' + template.appType, COLOR.cyan);
+    logInfo('Platforms: ' + template.platforms.join(', '), COLOR.cyan);
+
+    // Display command usage
+    var sourceForCommand = source || SDK.templatesRepoUri;
+    var command = commandPrefix + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
+        + ' --' + SDK.args.template.name + '=' + template.path;
+    
+    // Add additional required args if provided
+    if (extraRequiredArgs) {
+        command += ` ${extraRequiredArgs}`;
+    }
+    
+    logInfo('\nUsage:', COLOR.magenta);
+    logInfo(command, COLOR.magenta);
+    
+    // If descriptions are requested and available, show raw JSON metadata
+    if (includeDescriptions && template.metadata) {
+        logInfo('\nTemplate Metadata (template.json):', COLOR.cyan);
+        logInfo(JSON.stringify(template.metadata, null, 2), COLOR.white);
+    }
+    
+    logInfo('');
+}
 
 module.exports = {
     prepareTemplate,
     getTemplates,
-    getAppTypeFromTemplate
+    getTemplate,
+    getAppTypeFromTemplate,
+    getTemplateMetadata,
+    displayTemplateList,
+    displayTemplateDetail
 };

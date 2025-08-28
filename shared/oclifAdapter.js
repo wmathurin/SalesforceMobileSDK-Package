@@ -30,6 +30,7 @@ const SDK = require('./constants');
 const configHelper = require('./configHelper');
 const createHelper = require('./createHelper');
 const templateHelper = require('./templateHelper');
+const { getTemplates, getTemplate, displayTemplateList, displayTemplateDetail } = require('./templateHelper');
 const jsonChecker = require('./jsonChecker');
 const logInfo = require('./utils').logInfo;
 const logError = require('./utils').logError;
@@ -47,31 +48,32 @@ class OclifAdapter extends Command {
         return `${description}${os.EOL}${os.EOL}${help}`;
     }
 
-    static listTemplates(cli, templateSourceOrRepoUri) {
-        const applicableTemplates = templateHelper.getTemplates(cli, templateSourceOrRepoUri);
+    static listTemplates(cli, templateSourceOrRepoUri, includeDescriptions, outputJson) {
+        const applicableTemplates = getTemplates(cli, templateSourceOrRepoUri, includeDescriptions);
 
-        // Show which template repository is being used
-        if (templateSourceOrRepoUri) {
-            logInfo('\nAvailable templates from custom repository:\n', COLOR.cyan);
-            logInfo('Repository: ' + templateSourceOrRepoUri, COLOR.cyan);
-        } else {
-            logInfo('\nAvailable templates:\n', COLOR.cyan);
+        // Use shared display function
+        const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
+        const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
+        displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample, outputJson);
+    }
+
+    static describeTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions, outputJson) {
+        if (!templateName) {
+            logError('Error: Template name is required. Use --template to specify the template name.');
+            process.exit(1);
         }
 
-        for (let i = 0; i < applicableTemplates.length; i++) {
-            const template = applicableTemplates[i];
-            logInfo((i + 1) + ') ' + template.description, COLOR.cyan);
-            // Recommend using --templatesource and --template
-            const sourceForCommand = templateSourceOrRepoUri || SDK.templatesRepoUri;
-            const cmd = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':')
-                + ' --' + SDK.args.templateSource.name + '=' + sourceForCommand
-                + ' --' + SDK.args.template.name + '=' + template.path
-                + ' --' + SDK.args.appName.name + '=<YOUR_APP_NAME>'
-                + ' --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME>'
-                + ' --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
-            logInfo(cmd, COLOR.magenta);
+        const template = getTemplate(templateName, templateSourceOrRepoUri, includeDescriptions);
+
+        if (!template) {
+            logError('Error: Template "' + templateName + '" not found.');
+            process.exit(1);
         }
-        logInfo('');
+
+        // Use shared display function
+        const commandPrefix = 'sf ' + [namespace, cli.topic, SDK.commands.createwithtemplate.name].join(':');
+        const usageExample = '--' + SDK.args.appName.name + '=<YOUR_APP_NAME> --' + SDK.args.packageName.name + '=<YOUR_PACKAGE_NAME> --' + SDK.args.organization.name + '=<YOUR_ORGANIZATION_NAME>';
+        displayTemplateDetail(template, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample, outputJson);
     }
 
     static runCommand(cli, commandName, vals) {
@@ -84,7 +86,11 @@ class OclifAdapter extends Command {
                 configHelper.printVersion(cli);
                 break;
             case SDK.commands.listtemplates.name:
-                OclifAdapter.listTemplates(cli, vals.templatesource);
+                OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc, vals.json);
+                process.exit(0);
+                break;
+            case SDK.commands.describetemplate.name:
+                OclifAdapter.describeTemplate(cli, vals.templatesource, vals.template, vals.doc, vals.json);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
