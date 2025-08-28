@@ -104,8 +104,8 @@ function readConfig(args, cli, handler) {
             listTemplates(cli, commandLineArgs);
             process.exit(0);
             break;
-        case SDK.commands.listtemplate.name:
-            listTemplate(cli, commandLineArgs);
+        case SDK.commands.describetemplate.name:
+            describeTemplate(cli, commandLineArgs);
             process.exit(0);
             break;
         default:
@@ -154,7 +154,7 @@ function listTemplates(cli, commandLineArgs) {
     displayTemplateList(applicableTemplates, source, cliName, commandPrefix, includeDescriptions, null, outputJson);
 }
 
-function listTemplate(cli, commandLineArgs) {
+function describeTemplate(cli, commandLineArgs) {
     var cliName = cli.name;
 
     // Parse command line arguments to extract templatesource, template, and doc

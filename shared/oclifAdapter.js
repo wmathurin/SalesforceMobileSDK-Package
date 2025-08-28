@@ -57,7 +57,7 @@ class OclifAdapter extends Command {
         displayTemplateList(applicableTemplates, templateSourceOrRepoUri, cli.name, commandPrefix, includeDescriptions, usageExample, outputJson);
     }
 
-    static listTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions, outputJson) {
+    static describeTemplate(cli, templateSourceOrRepoUri, templateName, includeDescriptions, outputJson) {
         if (!templateName) {
             logError('Error: Template name is required. Use --template to specify the template name.');
             process.exit(1);
@@ -89,8 +89,8 @@ class OclifAdapter extends Command {
                 OclifAdapter.listTemplates(cli, vals.templatesource, vals.doc, vals.json);
                 process.exit(0);
                 break;
-            case SDK.commands.listtemplate.name:
-                OclifAdapter.listTemplate(cli, vals.templatesource, vals.template, vals.doc, vals.json);
+            case SDK.commands.describetemplate.name:
+                OclifAdapter.describeTemplate(cli, vals.templatesource, vals.template, vals.doc, vals.json);
                 process.exit(0);
                 break;
             case SDK.commands.checkconfig.name:
