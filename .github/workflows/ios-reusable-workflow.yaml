@@ -24,7 +24,7 @@ jobs:
       - name: Install Dependencies
         run: node ./install.js
       - name: Build all ios native templates
-        run: ./test/test_force.js --exit-on-failure --cli=forceios
+        run: ./test/test_force.js --exit-on-failure --cli=forceios --spm-update
 
   forceios-sfdx:
     runs-on: ${{ inputs.macos }}
@@ -42,7 +42,7 @@ jobs:
       - name: Install SFDX
         run: npm install -g @salesforce/cli
       - name: Build all ios native templates with SFDX
-        run: ./test/test_force.js --exit-on-failure --cli=forceios --use-sfdx
+        run: ./test/test_force.js --exit-on-failure --cli=forceios --spm-update --use-sfdx
 
   forcehybrid-ios:
     runs-on: ${{ inputs.macos }}
