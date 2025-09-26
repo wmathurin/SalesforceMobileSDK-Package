@@ -28,7 +28,7 @@
 var path = require('path'),
     shelljs = require('shelljs');
 
-var VERSION= '13.0.2';
+var VERSION= '13.1.0';
 
 module.exports = {
     version: VERSION,
@@ -60,12 +60,12 @@ module.exports = {
         },
         cordova: {
             checkCmd: 'cordova -v',
-//            pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
+            pluginRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
             minVersion: '12.0.0',
-             pluginRepoUri: 'salesforce-mobilesdk-cordova-plugin@v' + VERSION, // GA
+//             pluginRepoUri: 'salesforce-mobilesdk-cordova-plugin@v' + VERSION, // GA
             platformVersion: {
                 ios: '7.1.1',
-                android: '13.0.0'
+                android: '14.0.1'
             }
         },
         sf: {
@@ -79,8 +79,8 @@ module.exports = {
         android: 'Android Studio'
     },
 
-//    templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#dev',    // dev
-     templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#v' + VERSION, // GA
+    templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#dev',    // dev
+//     templatesRepoUri: 'https://github.com/wmathurin/SalesforceMobileSDK-Templates#v' + VERSION, // GA
 
     forceclis: {
         forceios: {
@@ -95,7 +95,7 @@ module.exports = {
                 'native': 'iOSNativeTemplate',
                 'native_swift': 'iOSNativeSwiftTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
         },
         forcedroid: {
             name: 'forcedroid',
@@ -109,7 +109,7 @@ module.exports = {
                 'native': 'AndroidNativeTemplate',
                 'native_kotlin': 'AndroidNativeKotlinTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
         },
         forcehybrid: {
             name: 'forcehybrid',
@@ -123,7 +123,7 @@ module.exports = {
                 'hybrid_local': 'HybridLocalTemplate',
                 'hybrid_remote': 'HybridRemoteTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
         },
         forcereact: {
             name: 'forcereact',
@@ -137,7 +137,7 @@ module.exports = {
                 'react_native': 'ReactNativeTemplate',
                 'react_native_typescript': 'ReactNativeTypeScriptTemplate'
             },
-            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'checkconfig']
+            commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
         }
     },
 
@@ -171,6 +171,34 @@ module.exports = {
             prompt: 'Enter URI of repo containing template application or a Mobile SDK template name:',
             error: cli => val => 'Invalid value for template repo uri: \'' + val + '\'.',
             validate: cli => val => /^\S+$/.test(val),
+            promptIf: otherArgs => !otherArgs.templatesource,
+            required: false,
+            type: 'string'
+        },
+        templateSource: {
+            name: 'templatesource',
+            'char': 'S',
+            description: 'git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)',
+            longDescription: 'Location of a suite of templates. Can be a git URL with optional #branch suffix or a local filesystem path whose root contains templates.json.',
+            prompt: 'Enter git URL or local path to your templates suite:',
+            error: cli => val => 'Invalid value for template source: \'' + val + '\'.',
+            validate: cli => val => /\S+/.test(val),
+            // Process only when explicitly provided to avoid prompting during interactive flows
+            promptIf: otherArgs => typeof otherArgs.templatesource !== 'undefined',
+            required: false,
+            type: 'string'
+        },
+        template: {
+            name: 'template',
+            'char': 'm',
+            description: 'template name within the templates suite (e.g. ReactNativeTemplate)',
+            longDescription: 'Name of the template to use from the suite specified by --templatesource. Should match the directory name or the path field in templates.json.',
+            prompt: 'Enter the template name from your template source:',
+            error: cli => val => 'Invalid value for template: \'' + val + '\'.',
+            validate: cli => val => /\S+/.test(val),
+            // Only prompt for template when a templatesource is provided
+            promptIf: otherArgs => !!otherArgs.templatesource,
+            required: false,
             type: 'string'
         },
         appName: {
@@ -277,7 +305,31 @@ module.exports = {
             required: false,
             type: 'string',
             hidden: true
-	},
+	        },
+        doc: {
+            name: 'doc',
+            'char': 'D',
+            description: 'include verbose documentation from template.json files',
+            longDescription: 'When specified, includes detailed metadata from each template\'s template.json file if available (displayName, description, useCase, features, complexity).',
+            prompt: null,
+            error: cli => val => 'Invalid value for doc flag: \'' + val + '\'.',
+            validate: cli => val => true, // Boolean flag, no validation needed
+            required: false,
+            type: 'boolean',
+            hidden: false
+        },
+        json: {
+            name: 'json',
+            'char': 'j',
+            description: 'output response in JSON format',
+            longDescription: 'When specified, outputs the response in JSON format instead of human-readable text. Useful for programmatic consumption.',
+            prompt: null,
+            error: cli => val => 'Invalid value for json flag: \'' + val + '\'.',
+            validate: cli => val => true, // Boolean flag, no validation needed
+            required: false,
+            type: 'boolean',
+            hidden: false
+        }
     },
 
     commands: {
@@ -301,7 +353,9 @@ module.exports = {
         createwithtemplate: {
             name: 'createwithtemplate',
             args: cli => [cli.platforms.length > 1 ? 'platform' : null,
+                          'templateSource',
                           'templateRepoUri',
+                          'template',
                           'appName',
                           'packageName',
                           'organization',
@@ -309,7 +363,7 @@ module.exports = {
                           'outputDir',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
-			  'sdkDependencies'			  
+                          'sdkDependencies'              
                          ].filter(x=>x!=null),
             description: cli => 'create ' + cli.purpose + ' from a template',
             longDescription: cli => 'Create ' + cli.purpose + ' from a template.',
@@ -324,10 +378,17 @@ module.exports = {
         },
         listtemplates: {
             name: 'listtemplates',
-            args: [],
+            args: ['templateSource', 'doc', 'json'],
             description: cli => 'list available Mobile SDK templates to create ' + cli.purpose,
             longDescription: cli => 'List available Mobile SDK templates to create ' + cli.purpose + '.',
-            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command.'
+            help: 'This command displays the list of available Mobile SDK templates. You can copy repo paths from the output for use with the createwithtemplate command. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --doc to include detailed metadata from template.json files (displayName, description, useCase, features, complexity). Use --json to output the response in JSON format.'
+        },
+        describetemplate: {
+            name: 'describetemplate',
+            args: ['templateSource', 'template', 'doc', 'json'],
+            description: cli => 'list details for a specific Mobile SDK template to create ' + cli.purpose,
+            longDescription: cli => 'List details for a specific Mobile SDK template to create ' + cli.purpose + '.',
+            help: 'This command displays detailed information about a specific Mobile SDK template. Use --templatesource to specify a custom template repository or leave blank to use the default template repository. Use --template to specify the template name. Use --doc to include verbose metadata from template.json files. Use --json to output the response in JSON format.'
         },
         checkconfig: {
             name: 'checkconfig',
