@@ -109,8 +109,36 @@ function createHybridApp(config) {
     // Run cordova prepare
     utils.runProcessThrowError('cordova prepare', config.projectDir);
 
+    // Add theme for Android API 35
+    if (config.platform.split(',').includes('android')) {
+        createAndroidAPI35Theme(config.projectDir);
+    }
+
     // Done
     return prepareResult;
+}
+
+//
+// Add Android API 35 theme file
+// 
+function createAndroidAPI35Theme(projectDir) {
+    const dirPath = path.join(projectDir, 'platforms', 'android', 'app', 'src', 'main', 'res', 'values-v35');
+    const filePath = path.join(dirPath, 'themes.xml');
+    const fileContents = `<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <!-- Override for API 35+ to fix white status bar with white icons issue -->
+    <style name="SalesforceSDK_SplashScreen" parent="Theme.SplashScreen.IconBackground">
+        <item name="postSplashScreenTheme">@style/Theme.AppCompat.NoActionBar</item>
+        <!-- Use dark icons on light status bar background -->
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>` 
+
+    // Ensure the directory exists
+    utils.mkDirIfNeeded(dirPath);
+
+    // Write the file
+    fs.writeFileSync(filePath, fileContents, 'utf8');
 }
 
 //
@@ -324,13 +352,41 @@ function actuallyCreateApp(forcecli, config) {
         config.version = SDK.version;
         
         // Figuring out template repo uri and path
-        if (config.templaterepouri) {
-            if (!config.templaterepouri.startsWith("https://")) {
+        let localTemplatesRoot;
+        if (config.templatesource) {
+            const source = config.templatesource;
+            if (fs.existsSync(source)) {
+                // Local path to templates suite
+                localTemplatesRoot = path.resolve(source);
+                if (!config.template) {
+                    throw new Error('Missing --template when using --templatesource pointing to a local path');
+                }
+                config.templatepath = config.template;
+                // For display purposes
+                config.templaterepouri = source;
+            } else {
+                // Git URL with optional #branch
+                const parsed = utils.separateRepoUrlPathBranch(source);
+                config.templaterepouri = parsed.repo + '#' + parsed.branch;
+                config.templatepath = config.template || parsed.path;
+                if (!config.templatepath) {
+                    throw new Error('Missing template name. Use --template to specify a template within your --templatesource repository.');
+                }
+            }
+        }
+        else if (config.templaterepouri) {
+            if (fs.existsSync(config.templaterepouri)) {
+                // Local path directly to a specific template directory
+                localTemplatesRoot = path.resolve(config.templaterepouri);
+                config.templaterepouri = localTemplatesRoot;
+                // Use the directory itself as the template root
+                config.templatepath = '';
+            } else if (!config.templaterepouri.startsWith("https://")) {
                 // Given a Mobile SDK template name
                 config.templatepath = config.templaterepouri;
                 config.templaterepouri = SDK.templatesRepoUri;
             } else {
-                // Given a full URI
+                // Given a full URI to a specific template path
                 var templateUriParsed = utils.separateRepoUrlPathBranch(config.templaterepouri);
                 config.templaterepouri = templateUriParsed.repo + '#' + templateUriParsed.branch;
                 config.templatepath = templateUriParsed.path;
@@ -344,8 +400,13 @@ function actuallyCreateApp(forcecli, config) {
         // Creating tmp dir for template clone
         var tmpDir = utils.mkTmpDir();
 
-        // Cloning template repo
-        var repoDir = utils.cloneRepo(tmpDir, config.templaterepouri);
+        // Resolve template source directory (clone if needed)
+        var repoDir;
+        if (localTemplatesRoot) {
+            repoDir = localTemplatesRoot;
+        } else {
+            repoDir = utils.cloneRepo(tmpDir, config.templaterepouri);
+        }
         config.templateLocalPath = path.join(repoDir, config.templatepath);
 
         // Override sdk dependencies in package.json if any were provided

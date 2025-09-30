@@ -1,6 +1,6 @@
 {
     "name": "sfdx-mobilesdk-plugin",
-    "version": "13.0.2",
+    "version": "13.1.0",
     "description": "Salesforce CLI plugin for creating mobile apps based on the Salesforce Mobile SDK",
     "keywords": [
         "mobilesdk",
@@ -54,7 +54,8 @@
     "files": [
         "/shared/**/*.js",
         "/oclif/**/*.js",
-        "/bin"
+        "/bin",
+        "oclif.manifest.json"
     ],
     "oclif": {
         "commands": "./oclif",
