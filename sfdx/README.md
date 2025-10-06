@@ -50,6 +50,9 @@ COMMANDS
   mobilesdk ios create              create an iOS native mobile application
   mobilesdk ios createwithtemplate  create an iOS native mobile application from
                                     a template
+  mobilesdk ios describetemplate    list details for a specific Mobile SDK
+                                    template to create an iOS native mobile
+                                    application
   mobilesdk ios listtemplates       list available Mobile SDK templates to
                                     create an iOS native mobile application
   mobilesdk ios version             show version of Mobile SDK
@@ -90,13 +93,25 @@ DESCRIPTION
 list available Mobile SDK templates to create an iOS native mobile application
 
 USAGE
-  $ sf mobilesdk ios listtemplates
+  $ sf mobilesdk ios listtemplates [-S <value>] [-D] [-j]
+
+FLAGS
+  -D, --doc                     include verbose documentation from template.json
+                                files
+  -S, --templatesource=<value>  git repo URL (optionally with #branch) or local
+                                path to a templates suite (root must contain
+                                templates.json)
+  -j, --json                    output response in JSON format
 
 DESCRIPTION
   list available Mobile SDK templates to create an iOS native mobile application
 
   This command displays the list of available Mobile SDK templates. You can copy
-  repo paths from the output for use with the createwithtemplate command.
+  repo paths from the output for use with the createwithtemplate command. Use
+  --templatesource to specify a custom template repository or leave blank to use
+  the default template repository. Use --doc to include detailed metadata from
+  template.json files (displayName, description, useCase, features, complexity).
+  Use --json to output the response in JSON format.
 
 ```
 
@@ -106,19 +121,23 @@ DESCRIPTION
 create an iOS native mobile application from a template
 
 USAGE
-  $ sf mobilesdk ios createwithtemplate -r <value> -n <value> -k <value> -o <value> [-d
-    <value>]
+  $ sf mobilesdk ios createwithtemplate -n <value> -k <value> -o <value> [-S <value>] [-r
+    <value>] [-m <value>] [-d <value>]
 
 FLAGS
+  -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
+                                 path to a templates suite (root must contain
+                                 templates.json)
   -d, --outputdir=<value>        output directory (leave empty for current
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -m, --template=<value>         template name within the templates suite (e.g.
+                                 ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
   -o, --organization=<value>     (required) organization name (your
                                  company's/organization's name)
-  -r, --templaterepouri=<value>  (required) template repo URI or Mobile SDK
-                                 template name
+  -r, --templaterepouri=<value>  template repo URI or Mobile SDK template name
 
 DESCRIPTION
   create an iOS native mobile application from a template
@@ -167,6 +186,9 @@ COMMANDS
                                         application
   mobilesdk android createwithtemplate  create an Android native mobile
                                         application from a template
+  mobilesdk android describetemplate    list details for a specific Mobile SDK
+                                        template to create an Android native
+                                        mobile application
   mobilesdk android listtemplates       list available Mobile SDK templates to
                                         create an Android native mobile
                                         application
@@ -208,14 +230,26 @@ DESCRIPTION
 list available Mobile SDK templates to create an Android native mobile application
 
 USAGE
-  $ sf mobilesdk android listtemplates
+  $ sf mobilesdk android listtemplates [-S <value>] [-D] [-j]
+
+FLAGS
+  -D, --doc                     include verbose documentation from template.json
+                                files
+  -S, --templatesource=<value>  git repo URL (optionally with #branch) or local
+                                path to a templates suite (root must contain
+                                templates.json)
+  -j, --json                    output response in JSON format
 
 DESCRIPTION
   list available Mobile SDK templates to create an Android native mobile
   application
 
   This command displays the list of available Mobile SDK templates. You can copy
-  repo paths from the output for use with the createwithtemplate command.
+  repo paths from the output for use with the createwithtemplate command. Use
+  --templatesource to specify a custom template repository or leave blank to use
+  the default template repository. Use --doc to include detailed metadata from
+  template.json files (displayName, description, useCase, features, complexity).
+  Use --json to output the response in JSON format.
 
 ```
 
@@ -225,19 +259,23 @@ DESCRIPTION
 create an Android native mobile application from a template
 
 USAGE
-  $ sf mobilesdk android createwithtemplate -r <value> -n <value> -k <value> -o <value> [-d
-    <value>]
+  $ sf mobilesdk android createwithtemplate -n <value> -k <value> -o <value> [-S <value>] [-r
+    <value>] [-m <value>] [-d <value>]
 
 FLAGS
+  -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
+                                 path to a templates suite (root must contain
+                                 templates.json)
   -d, --outputdir=<value>        output directory (leave empty for current
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -m, --template=<value>         template name within the templates suite (e.g.
+                                 ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
   -o, --organization=<value>     (required) organization name (your
                                  company's/organization's name)
-  -r, --templaterepouri=<value>  (required) template repo URI or Mobile SDK
-                                 template name
+  -r, --templaterepouri=<value>  template repo URI or Mobile SDK template name
 
 DESCRIPTION
   create an Android native mobile application from a template
@@ -285,6 +323,9 @@ COMMANDS
   mobilesdk hybrid create              create a hybrid mobile application
   mobilesdk hybrid createwithtemplate  create a hybrid mobile application from a
                                        template
+  mobilesdk hybrid describetemplate    list details for a specific Mobile SDK
+                                       template to create a hybrid mobile
+                                       application
   mobilesdk hybrid listtemplates       list available Mobile SDK templates to
                                        create a hybrid mobile application
   mobilesdk hybrid version             show version of Mobile SDK
@@ -329,13 +370,25 @@ DESCRIPTION
 list available Mobile SDK templates to create a hybrid mobile application
 
 USAGE
-  $ sf mobilesdk hybrid listtemplates
+  $ sf mobilesdk hybrid listtemplates [-S <value>] [-D] [-j]
+
+FLAGS
+  -D, --doc                     include verbose documentation from template.json
+                                files
+  -S, --templatesource=<value>  git repo URL (optionally with #branch) or local
+                                path to a templates suite (root must contain
+                                templates.json)
+  -j, --json                    output response in JSON format
 
 DESCRIPTION
   list available Mobile SDK templates to create a hybrid mobile application
 
   This command displays the list of available Mobile SDK templates. You can copy
-  repo paths from the output for use with the createwithtemplate command.
+  repo paths from the output for use with the createwithtemplate command. Use
+  --templatesource to specify a custom template repository or leave blank to use
+  the default template repository. Use --doc to include detailed metadata from
+  template.json files (displayName, description, useCase, features, complexity).
+  Use --json to output the response in JSON format.
 
 ```
 
@@ -345,21 +398,25 @@ DESCRIPTION
 create a hybrid mobile application from a template
 
 USAGE
-  $ sf mobilesdk hybrid createwithtemplate -p <value> -r <value> -n <value> -k <value> -o <value>
-    [-s <value>] [-d <value>]
+  $ sf mobilesdk hybrid createwithtemplate -p <value> -n <value> -k <value> -o <value> [-S
+    <value>] [-r <value>] [-m <value>] [-s <value>] [-d <value>]
 
 FLAGS
+  -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
+                                 path to a templates suite (root must contain
+                                 templates.json)
   -d, --outputdir=<value>        output directory (leave empty for current
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -m, --template=<value>         template name within the templates suite (e.g.
+                                 ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
   -o, --organization=<value>     (required) organization name (your
                                  company's/organization's name)
   -p, --platform=<value>         (required) comma-separated list of platforms
                                  (ios, android)
-  -r, --templaterepouri=<value>  (required) template repo URI or Mobile SDK
-                                 template name
+  -r, --templaterepouri=<value>  template repo URI or Mobile SDK template name
   -s, --startpage=<value>        app start page (the start page of your remote
                                  app; required for hybrid_remote apps only)
 
@@ -411,6 +468,9 @@ COMMANDS
                                             application
   mobilesdk reactnative createwithtemplate  create a React Native mobile
                                             application from a template
+  mobilesdk reactnative describetemplate    list details for a specific Mobile
+                                            SDK template to create a React
+                                            Native mobile application
   mobilesdk reactnative listtemplates       list available Mobile SDK templates
                                             to create a React Native mobile
                                             application
@@ -455,14 +515,26 @@ DESCRIPTION
 list available Mobile SDK templates to create a React Native mobile application
 
 USAGE
-  $ sf mobilesdk reactnative listtemplates
+  $ sf mobilesdk reactnative listtemplates [-S <value>] [-D] [-j]
+
+FLAGS
+  -D, --doc                     include verbose documentation from template.json
+                                files
+  -S, --templatesource=<value>  git repo URL (optionally with #branch) or local
+                                path to a templates suite (root must contain
+                                templates.json)
+  -j, --json                    output response in JSON format
 
 DESCRIPTION
   list available Mobile SDK templates to create a React Native mobile
   application
 
   This command displays the list of available Mobile SDK templates. You can copy
-  repo paths from the output for use with the createwithtemplate command.
+  repo paths from the output for use with the createwithtemplate command. Use
+  --templatesource to specify a custom template repository or leave blank to use
+  the default template repository. Use --doc to include detailed metadata from
+  template.json files (displayName, description, useCase, features, complexity).
+  Use --json to output the response in JSON format.
 
 ```
 
@@ -472,21 +544,25 @@ DESCRIPTION
 create a React Native mobile application from a template
 
 USAGE
-  $ sf mobilesdk reactnative createwithtemplate -p <value> -r <value> -n <value> -k <value> -o <value>
-    [-d <value>]
+  $ sf mobilesdk reactnative createwithtemplate -p <value> -n <value> -k <value> -o <value> [-S
+    <value>] [-r <value>] [-m <value>] [-d <value>]
 
 FLAGS
+  -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
+                                 path to a templates suite (root must contain
+                                 templates.json)
   -d, --outputdir=<value>        output directory (leave empty for current
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -m, --template=<value>         template name within the templates suite (e.g.
+                                 ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
   -o, --organization=<value>     (required) organization name (your
                                  company's/organization's name)
   -p, --platform=<value>         (required) comma-separated list of platforms
                                  (ios, android)
-  -r, --templaterepouri=<value>  (required) template repo URI or Mobile SDK
-                                 template name
+  -r, --templaterepouri=<value>  template repo URI or Mobile SDK template name
 
 DESCRIPTION
   create a React Native mobile application from a template
