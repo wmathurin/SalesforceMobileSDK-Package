@@ -47,16 +47,36 @@ forcehybrid create
 # create a hybrid mobile application from a template
 forcehybrid createwithtemplate
     --platform=comma-separated list of platforms (ios, android)
-    --templaterepouri=template repo URI or Mobile SDK template name
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--templaterepouri=template repo URI or Mobile SDK template name]
+    [--template=template name within the templates suite (e.g. ReactNativeTemplate)]
     --appname=application name
     --packagename=app package identifier (e.g. com.mycompany.myapp)
     --organization=organization name (your company's/organization's name)
+    [--startpage=app start page (the start page of your remote app; required for hybrid_remote apps only)]
     [--outputdir=output directory (leave empty for current directory)]
 
  OR 
 
-# list available Mobile SDK templates
+# show version of Mobile SDK
+forcehybrid version
+
+ OR 
+
+# list available Mobile SDK templates to create a hybrid mobile application
 forcehybrid listtemplates
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--doc=include verbose documentation from template.json files]
+    [--json=output response in JSON format]
+
+ OR 
+
+# list details for a specific Mobile SDK template to create a hybrid mobile application
+forcehybrid describetemplate
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--template=template name within the templates suite (e.g. ReactNativeTemplate)]
+    [--doc=include verbose documentation from template.json files]
+    [--json=output response in JSON format]
 
  OR 
 
@@ -64,11 +84,6 @@ forcehybrid listtemplates
 forcehybrid checkconfig
     --configpath=path to store or syncs config to validate
     --configtype=type of config to validate (store or syncs)
-
- OR 
-
-# show version of Mobile SDK
-forcehybrid version
 
  OR 
 
