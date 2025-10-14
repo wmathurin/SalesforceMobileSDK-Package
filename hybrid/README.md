@@ -41,6 +41,8 @@ forcehybrid create
     --organization=organization name (your company's/organization's name)
     [--startpage=app start page (the start page of your remote app; required for hybrid_remote apps only)]
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
 
  OR 
 
@@ -55,6 +57,8 @@ forcehybrid createwithtemplate
     --organization=organization name (your company's/organization's name)
     [--startpage=app start page (the start page of your remote app; required for hybrid_remote apps only)]
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
 
  OR 
 

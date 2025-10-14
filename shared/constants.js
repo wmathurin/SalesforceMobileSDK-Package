@@ -296,7 +296,7 @@ module.exports = {
             type: 'string',
             hidden: true
         },
-	sdkDependencies: {
+	    sdkDependencies: {
             name: 'sdkdependencies',
             description: 'override sdk dependencies',
             'char': 'd',
@@ -329,6 +329,28 @@ module.exports = {
             required: false,
             type: 'boolean',
             hidden: false
+        },
+        consumerKey: {
+            name: 'consumerkey',
+            'char': 'c',
+            description: 'OAuth consumer key for the Salesforce External Client App or Connected App',
+            longDescription: 'The OAuth consumer key (client ID) for your Salesforce External Client App or Connected App. When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your OAuth consumer key (leave empty to manually configure this value in the project\'s bootconfig file):',
+            error: cli => val => 'Invalid value for consumer key: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
+        },
+        callbackURL: {
+            name: 'callbackurl',
+            'char': 'u',
+            description: 'OAuth callback URL for the Salesforce External Client App or Connected App',
+            longDescription: 'The OAuth callback URL (redirect URI) for your Salesforce External Client App or Connected App. When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your OAuth callback URL (leave empty to manually configure this value in the project\'s bootconfig file):',
+            error: cli => val => 'Invalid value for callback URL: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
         }
     },
 
@@ -342,6 +364,8 @@ module.exports = {
                           'organization',
                           cli.appTypes.indexOf('hybrid_remote') >=0 ? 'startPage' : null,
                           'outputDir',
+                          'consumerKey',
+                          'callbackURL',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
 			  'sdkDependencies'
@@ -361,6 +385,8 @@ module.exports = {
                           'organization',
                           cli.appTypes.indexOf('hybrid_remote') >=0 ? 'startPage' : null,
                           'outputDir',
+                          'consumerKey',
+                          'callbackURL',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
                           'sdkDependencies'              

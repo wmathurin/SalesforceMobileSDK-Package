@@ -178,44 +178,70 @@ function printDetails(config) {
 }
 
 //
+// Check if valid OAuth configuration is provided
+//
+function hasValidOAuthConfig(config) {
+    return config.consumerkey && config.callbackurl &&
+           config.consumerkey !== '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__' &&
+           config.callbackurl !== '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__' &&
+           config.consumerkey.trim() !== '' && 
+           config.callbackurl.trim() !== '';
+}
+
+//
 // Print next steps
 //
-function printNextSteps(ide, projectPath, result) {
+function printNextSteps(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide, 
+                     '   - build and run'];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('Before you ship, make sure to plug your OAuth Client ID and Callback URI,');
+        nextSteps.push('and OAuth Scopes into ' + bootconfigFile);
+    }
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile,
-                       ]);
+    utils.logParagraph(nextSteps);
 };    
 
 //
 // Print next steps for Native Login
 // 
-function printNextStepsForNativeLogin(ide, projectPath, result) {
+function printNextStepsForNativeLogin(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
     var entryFile = (ide === 'XCode') ? 'SceneDelegate' : 'MainApplication';  
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.');
+    }
+
+    nextSteps.push('   - build and run');
+
+    // Only show bootconfig OAuth instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('Before you ship, make sure to plug your OAuth Client ID and Callback URI,');
+        nextSteps.push('and OAuth Scopes into ' + bootconfigFile + ', since it is still used for');
+        nextSteps.push('authentication if we fallback on the webview.');
+    }
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.',
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile + ', since it is still used for',
-                        'authentication if we fallback on the webview.'
-                       ]);
+    utils.logParagraph(nextSteps);
 }
 
 //
@@ -435,13 +461,14 @@ function actuallyCreateApp(forcecli, config) {
         
         // Printing next steps
         if (!(results instanceof Array)) { results = [results] };
+        var hasValidOAuth = hasValidOAuthConfig(config);
         for (var result of results) {
             var ide = SDK.ides[result.platform || config.platform.split(',')[0]];
 
             if (config.templatepath != undefined && config.templatepath.includes('NativeLogin')) {
-                printNextStepsForNativeLogin(ide, config.projectPath, result);
+                printNextStepsForNativeLogin(ide, config.projectPath, result, hasValidOAuth);
             } else {
-                printNextSteps(ide, config.projectPath, result);
+                printNextSteps(ide, config.projectPath, result, hasValidOAuth);
             }
         }
         printNextStepsForServerProjectIfNeeded(config.projectPath);
