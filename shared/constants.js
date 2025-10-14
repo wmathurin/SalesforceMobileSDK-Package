@@ -351,6 +351,17 @@ module.exports = {
             validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
             required: false,
             type: 'string'
+        },
+        loginServer: {
+            name: 'loginserver',
+            'char': 'l',
+            description: 'Login server URL for the Salesforce org',
+            longDescription: 'The login server URL for your Salesforce org (e.g. https://login.salesforce.com, https://test.salesforce.com, or custom domain). When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your login server URL (leave empty for https://login.salesforce.com):',
+            error: cli => val => 'Invalid value for login server: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
         }
     },
 
@@ -366,6 +377,7 @@ module.exports = {
                           'outputDir',
                           'consumerKey',
                           'callbackURL',
+                          'loginServer',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
 			  'sdkDependencies'
@@ -387,6 +399,7 @@ module.exports = {
                           'outputDir',
                           'consumerKey',
                           'callbackURL',
+                          'loginServer',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
                           'sdkDependencies'              

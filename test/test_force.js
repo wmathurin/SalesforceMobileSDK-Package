@@ -59,6 +59,7 @@ function main(args) {
     var sdkDependencies = parsedArgs.sdkdependencies;
     var consumerKey = parsedArgs.consumerkey || '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__';
     var callbackURL = parsedArgs.callbackurl || '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__';
+    var loginServer = parsedArgs.loginserver || 'https://login.salesforce.com';
 
     var testingWithOS = chosenOperatingSystems.length > 0;
     var testingWithClis = chosenClis.length > 0;
@@ -161,7 +162,7 @@ function main(args) {
                 for (var k=0; k<template.platforms.length; k++) {
                     var os = template.platforms[k];
                     if (chosenOperatingSystems.length == 0 || chosenOperatingSystems.indexOf(os) >= 0) {
-                        createCompileApp(tmpDir, os, template.appType, template.path, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL);
+                        createCompileApp(tmpDir, os, template.appType, template.path, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL, loginServer);
                     }
                 }
             }
@@ -173,14 +174,14 @@ function main(args) {
             if (testingWithAppType) {
                 for (var j=0; j<chosenAppTypes.length; j++) {
                     var appType = chosenAppTypes[j];
-                    createCompileApp(tmpDir, os, appType, null, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL);
+                    createCompileApp(tmpDir, os, appType, null, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL, loginServer);
                 }
             }
 
             if (testingWithTemplate) {
                 // NB: chosenAppTypes[0] is appType from template
                 var appType = chosenAppTypes.length > 0 ? chosenAppTypes[0] : [templateHelper.getAppTypeFromTemplate(templateRepoUri)];
-                createCompileApp(tmpDir, os, appType, templateRepoUri, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL);
+                createCompileApp(tmpDir, os, appType, templateRepoUri, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL, loginServer);
             }
         }
     }
@@ -205,6 +206,7 @@ function shortUsage(exitCode) {
     utils.logInfo('    [--sdkdependencies=SDK_DEPDENDENCIES_OVERRIDE]', COLOR.magenta);
     utils.logInfo('    [--consumerkey=OAUTH_CONSUMER_KEY]', COLOR.magenta);
     utils.logInfo('    [--callbackurl=OAUTH_CALLBACK_URL]', COLOR.magenta);
+    utils.logInfo('    [--loginserver=LOGIN_SERVER_URL]', COLOR.magenta);
     utils.logInfo('', COLOR.cyan);
     utils.logInfo('  Where:', COLOR.cyan);
     utils.logInfo('  - osX is : ios or android', COLOR.cyan);
@@ -214,6 +216,7 @@ function shortUsage(exitCode) {
     utils.logInfo('  - sdkdependencies is like {\"SalesforceMobileSDK-iOS\":\"https://github.com/somefork/SalesforceMobileSDK-iOS#somebranch\"}', COLOR.cyan);
     utils.logInfo('  - consumerkey is the OAuth consumer key for the Salesforce External Client App or Connected App', COLOR.cyan);
     utils.logInfo('  - callbackurl is the OAuth callback URL for the Salesforce External Client App or Connected App', COLOR.cyan);
+    utils.logInfo('  - loginserver is the login server URL for the Salesforce org', COLOR.cyan);
     utils.logInfo('', COLOR.cyan);
 
     if (typeof(exitCode) !== 'undefined') {
@@ -305,7 +308,7 @@ function updatePluginRepo(tmpDir, os, pluginRepoDir, sdkBranch) {
 //
 // Create and compile app
 //
-function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL) {
+function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepoUri, useSfdxRequested, sdkDependencies, consumerKey, callbackURL, loginServer) {
     var execArgs = '';
     var isNative = actualAppType == APP_TYPE.native || actualAppType == APP_TYPE.native_swift || actualAppType == APP_TYPE.native_kotlin; 
     var isReactNative = actualAppType == APP_TYPE.react_native || actualAppType == APP_TYPE.react_native_typescript;
@@ -363,7 +366,8 @@ function createCompileApp(tmpDir, os, actualAppType, templateRepoUri, pluginRepo
         + ' --organization=Salesforce'
         + ' --outputdir=' + outputDir
         + ' --consumerkey=' + consumerKey
-        + ' --callbackurl=' + callbackURL       
+        + ' --callbackurl=' + callbackURL
+        + ' --loginserver=' + loginServer      
         + ' --verbose'
         + (isHybridRemote ? ' --startpage=' + defaultStartPage : '')
         + (isHybrid && pluginRepoUri ? ' --pluginrepouri=' + pluginRepoUri : '');

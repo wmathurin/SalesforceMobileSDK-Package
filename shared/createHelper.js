@@ -164,6 +164,19 @@ function printDetails(config) {
     if (config.sdkdependencies) {
         details = details.concat(['       sdk dependencies:   ' + config.sdkdependencies]);
     }
+
+    // OAuth configuration details
+    if (config.consumerkey && config.consumerkey !== '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__' && config.consumerkey.trim() !== '') {
+        details = details.concat(['       consumer key:       ' + config.consumerkey]);
+    }
+
+    if (config.callbackurl && config.callbackurl !== '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
+        details = details.concat(['       callback URL:       ' + config.callbackurl]);
+    }
+
+    if (config.loginserver && config.loginserver.trim() !== '') {
+        details = details.concat(['       login server:       ' + config.loginserver]);
+    }
             
     // Hybrid extra details
     if (config.apptype.indexOf('hybrid') >= 0) {
@@ -185,7 +198,8 @@ function hasValidOAuthConfig(config) {
            config.consumerkey !== '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__' &&
            config.callbackurl !== '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__' &&
            config.consumerkey.trim() !== '' && 
-           config.callbackurl.trim() !== '';
+           config.callbackurl.trim() !== '' &&
+           (!config.loginserver || config.loginserver.trim() !== '');
 }
 
 //
@@ -199,14 +213,15 @@ function printNextSteps(ide, projectPath, result, hasValidOAuth) {
                      '',
                      'Your application project is ready in ' + projectPath + '.',
                      'To use your new application in ' + ide + ', do the following:', 
-                     '   - open ' + workspacePath + ' in ' + ide, 
-                     '   - build and run'];
+                     '   - open ' + workspacePath + ' in ' + ide];
 
     // Only show OAuth configuration instructions if valid OAuth config was not provided
     if (!hasValidOAuth) {
-        nextSteps.push('Before you ship, make sure to plug your OAuth Client ID and Callback URI,');
-        nextSteps.push('and OAuth Scopes into ' + bootconfigFile);
+        nextSteps.push('   - make sure to plug your OAuth Client ID and Callback URI');
+        nextSteps.push('     into ' + bootconfigFile);
     }
+
+    nextSteps.push('   - build and run');
 
     // Printing out next steps
     utils.logParagraph(nextSteps);
@@ -228,17 +243,13 @@ function printNextStepsForNativeLogin(ide, projectPath, result, hasValidOAuth) {
 
     // Only show OAuth configuration instructions if valid OAuth config was not provided
     if (!hasValidOAuth) {
-        nextSteps.push('   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.');
+        nextSteps.push('   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.');        
+        nextSteps.push('   - Make sure to plug your OAuth Client ID and Callback URI into');
+        nextSteps.push('     into ' + bootconfigFile);
+        nextSteps.push('     since it is still be used for authentication if we fallback on the webview.');
     }
 
     nextSteps.push('   - build and run');
-
-    // Only show bootconfig OAuth instructions if valid OAuth config was not provided
-    if (!hasValidOAuth) {
-        nextSteps.push('Before you ship, make sure to plug your OAuth Client ID and Callback URI,');
-        nextSteps.push('and OAuth Scopes into ' + bootconfigFile + ', since it is still used for');
-        nextSteps.push('authentication if we fallback on the webview.');
-    }
 
     // Printing out next steps
     utils.logParagraph(nextSteps);

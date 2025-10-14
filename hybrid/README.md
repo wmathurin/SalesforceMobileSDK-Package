@@ -43,6 +43,7 @@ forcehybrid create
     [--outputdir=output directory (leave empty for current directory)]
     [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
     [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 
@@ -59,6 +60,7 @@ forcehybrid createwithtemplate
     [--outputdir=output directory (leave empty for current directory)]
     [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
     [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 

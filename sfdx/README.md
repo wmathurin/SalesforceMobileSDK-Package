@@ -66,7 +66,7 @@ create an iOS native mobile application
 
 USAGE
   $ sf mobilesdk ios create -n <value> -k <value> -o <value> [-t <value>] [-d
-    <value>] [-c <value>] [-u <value>]
+    <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -c, --consumerkey=<value>   OAuth consumer key for the Salesforce External
@@ -75,6 +75,7 @@ FLAGS
                               directory)
   -k, --packagename=<value>   (required) app package identifier (e.g.
                               com.mycompany.myapp)
+  -l, --loginserver=<value>   Login server URL for the Salesforce org
   -n, --appname=<value>       (required) application name
   -o, --organization=<value>  (required) organization name (your
                               company's/organization's name)
@@ -126,7 +127,7 @@ create an iOS native mobile application from a template
 
 USAGE
   $ sf mobilesdk ios createwithtemplate -n <value> -k <value> -o <value> [-S <value>] [-r
-    <value>] [-m <value>] [-d <value>] [-c <value>] [-u <value>]
+    <value>] [-m <value>] [-d <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
@@ -138,6 +139,7 @@ FLAGS
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -l, --loginserver=<value>      Login server URL for the Salesforce org
   -m, --template=<value>         template name within the templates suite (e.g.
                                  ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
@@ -211,7 +213,7 @@ create an Android native mobile application
 
 USAGE
   $ sf mobilesdk android create -n <value> -k <value> -o <value> [-t <value>] [-d
-    <value>] [-c <value>] [-u <value>]
+    <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -c, --consumerkey=<value>   OAuth consumer key for the Salesforce External
@@ -220,6 +222,7 @@ FLAGS
                               directory)
   -k, --packagename=<value>   (required) app package identifier (e.g.
                               com.mycompany.myapp)
+  -l, --loginserver=<value>   Login server URL for the Salesforce org
   -n, --appname=<value>       (required) application name
   -o, --organization=<value>  (required) organization name (your
                               company's/organization's name)
@@ -272,7 +275,7 @@ create an Android native mobile application from a template
 
 USAGE
   $ sf mobilesdk android createwithtemplate -n <value> -k <value> -o <value> [-S <value>] [-r
-    <value>] [-m <value>] [-d <value>] [-c <value>] [-u <value>]
+    <value>] [-m <value>] [-d <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
@@ -284,6 +287,7 @@ FLAGS
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -l, --loginserver=<value>      Login server URL for the Salesforce org
   -m, --template=<value>         template name within the templates suite (e.g.
                                  ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
@@ -355,7 +359,7 @@ create a hybrid mobile application
 
 USAGE
   $ sf mobilesdk hybrid create -p <value> -n <value> -k <value> -o <value> [-t
-    <value>] [-s <value>] [-d <value>] [-c <value>] [-u <value>]
+    <value>] [-s <value>] [-d <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -c, --consumerkey=<value>   OAuth consumer key for the Salesforce External
@@ -364,6 +368,7 @@ FLAGS
                               directory)
   -k, --packagename=<value>   (required) app package identifier (e.g.
                               com.mycompany.myapp)
+  -l, --loginserver=<value>   Login server URL for the Salesforce org
   -n, --appname=<value>       (required) application name
   -o, --organization=<value>  (required) organization name (your
                               company's/organization's name)
@@ -420,7 +425,7 @@ create a hybrid mobile application from a template
 USAGE
   $ sf mobilesdk hybrid createwithtemplate -p <value> -n <value> -k <value> -o <value> [-S
     <value>] [-r <value>] [-m <value>] [-s <value>] [-d <value>] [-c <value>]
-    [-u <value>]
+    [-u <value>] [-l <value>]
 
 FLAGS
   -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
@@ -432,6 +437,7 @@ FLAGS
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -l, --loginserver=<value>      Login server URL for the Salesforce org
   -m, --template=<value>         template name within the templates suite (e.g.
                                  ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
@@ -510,7 +516,7 @@ create a React Native mobile application
 
 USAGE
   $ sf mobilesdk reactnative create -p <value> -n <value> -k <value> -o <value> [-t
-    <value>] [-d <value>] [-c <value>] [-u <value>]
+    <value>] [-d <value>] [-c <value>] [-u <value>] [-l <value>]
 
 FLAGS
   -c, --consumerkey=<value>   OAuth consumer key for the Salesforce External
@@ -519,6 +525,7 @@ FLAGS
                               directory)
   -k, --packagename=<value>   (required) app package identifier (e.g.
                               com.mycompany.myapp)
+  -l, --loginserver=<value>   Login server URL for the Salesforce org
   -n, --appname=<value>       (required) application name
   -o, --organization=<value>  (required) organization name (your
                               company's/organization's name)
@@ -575,6 +582,7 @@ create a React Native mobile application from a template
 USAGE
   $ sf mobilesdk reactnative createwithtemplate -p <value> -n <value> -k <value> -o <value> [-S
     <value>] [-r <value>] [-m <value>] [-d <value>] [-c <value>] [-u <value>]
+    [-l <value>]
 
 FLAGS
   -S, --templatesource=<value>   git repo URL (optionally with #branch) or local
@@ -586,6 +594,7 @@ FLAGS
                                  directory)
   -k, --packagename=<value>      (required) app package identifier (e.g.
                                  com.mycompany.myapp)
+  -l, --loginserver=<value>      Login server URL for the Salesforce org
   -m, --template=<value>         template name within the templates suite (e.g.
                                  ReactNativeTemplate)
   -n, --appname=<value>          (required) application name
