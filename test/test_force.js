@@ -57,8 +57,8 @@ function main(args) {
     var chosenAppTypes = cleanSplit(parsedArgs.apptype, ',');
     var chosenClis = cleanSplit(parsedArgs.cli, ',');
     var sdkDependencies = parsedArgs.sdkdependencies;
-    var consumerKey = parsedArgs.consumerkey || '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__';
-    var callbackURL = parsedArgs.callbackurl || '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__';
+    var consumerKey = parsedArgs.consumerkey || '__INSERT_CONSUMER_KEY_HERE__';
+    var callbackURL = parsedArgs.callbackurl || '__INSERT_CALLBACK_URL_HERE__';
     var loginServer = parsedArgs.loginserver || 'https://login.salesforce.com';
 
     var testingWithOS = chosenOperatingSystems.length > 0;

@@ -166,11 +166,11 @@ function printDetails(config) {
     }
 
     // OAuth configuration details
-    if (config.consumerkey && config.consumerkey !== '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__' && config.consumerkey.trim() !== '') {
+    if (config.consumerkey && config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' && config.consumerkey.trim() !== '') {
         details = details.concat(['       consumer key:       ' + config.consumerkey]);
     }
 
-    if (config.callbackurl && config.callbackurl !== '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
+    if (config.callbackurl && config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
         details = details.concat(['       callback URL:       ' + config.callbackurl]);
     }
 
@@ -195,8 +195,8 @@ function printDetails(config) {
 //
 function hasValidOAuthConfig(config) {
     return config.consumerkey && config.callbackurl &&
-           config.consumerkey !== '__INSERT_REMOTE_ACCESS_CLIENT_KEY_HERE__' &&
-           config.callbackurl !== '__INSERT_REMOTE_ACCESS_CALLBACK_URL_HERE__' &&
+           config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' &&
+           config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' &&
            config.consumerkey.trim() !== '' && 
            config.callbackurl.trim() !== '' &&
            (!config.loginserver || config.loginserver.trim() !== '');
