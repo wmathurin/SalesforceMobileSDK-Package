@@ -147,44 +147,44 @@ function createAndroidAPI35Theme(projectDir) {
 function printDetails(config) {
     // Printing out details
     var details = ['Creating ' + config.platform.replace(',', ' and ') + ' ' + config.apptype + ' application using Salesforce Mobile SDK',
-                        '  with app name:        ' + config.appname,
-                        '       package name:    ' + config.packagename,
-                        '       organization:    ' + config.organization,
+                        '  with app name:         ' + config.appname,
+                        '       package name:     ' + config.packagename,
+                        '       organization:     ' + config.organization,
                         '',
-                        '  in:                   ' + config.projectPath,
+                        '  in:                    ' + config.projectPath,
                         '',
-                        '  from template repo:   ' + config.templaterepouri
+                        '  from template repo:    ' + config.templaterepouri
                   ];
 
     if (config.templatepath) {
-        details = details.concat(['       template path:   ' + config.templatepath]);
+        details = details.concat(['       template path:    ' + config.templatepath]);
     }
             
 
     if (config.sdkdependencies) {
-        details = details.concat(['       sdk dependencies:   ' + config.sdkdependencies]);
+        details = details.concat(['       sdk dependencies: ' + config.sdkdependencies]);
     }
 
     // OAuth configuration details
     if (config.consumerkey && config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' && config.consumerkey.trim() !== '') {
-        details = details.concat(['       consumer key:       ' + config.consumerkey]);
+        details = details.concat(['       consumer key:     ' + config.consumerkey]);
     }
 
     if (config.callbackurl && config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
-        details = details.concat(['       callback URL:       ' + config.callbackurl]);
+        details = details.concat(['       callback URL:     ' + config.callbackurl]);
     }
 
     if (config.loginserver && config.loginserver.trim() !== '') {
-        details = details.concat(['       login server:       ' + config.loginserver]);
+        details = details.concat(['       login server:     ' + config.loginserver]);
     }
             
     // Hybrid extra details
     if (config.apptype.indexOf('hybrid') >= 0) {
         if (config.apptype === 'hybrid_remote') {
-            details = details.concat(['       start page:      ' + config.startpage]);
+            details = details.concat(['       start page:       ' + config.startpage]);
         }
 
-        details = details.concat(['       plugin repo:     ' + config.cordovaPluginRepoUri]);
+        details = details.concat(['       plugin repo:      ' + config.cordovaPluginRepoUri]);
     }
             
     utils.logParagraph(details);
