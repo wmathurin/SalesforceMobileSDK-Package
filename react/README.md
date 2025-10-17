@@ -40,6 +40,9 @@ forcereact create
     --packagename=app package identifier (e.g. com.mycompany.myapp)
     --organization=organization name (your company's/organization's name)
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 
@@ -53,6 +56,9 @@ forcereact createwithtemplate
     --packagename=app package identifier (e.g. com.mycompany.myapp)
     --organization=organization name (your company's/organization's name)
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 

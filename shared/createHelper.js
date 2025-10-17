@@ -147,75 +147,112 @@ function createAndroidAPI35Theme(projectDir) {
 function printDetails(config) {
     // Printing out details
     var details = ['Creating ' + config.platform.replace(',', ' and ') + ' ' + config.apptype + ' application using Salesforce Mobile SDK',
-                        '  with app name:        ' + config.appname,
-                        '       package name:    ' + config.packagename,
-                        '       organization:    ' + config.organization,
+                        '  with app name:         ' + config.appname,
+                        '       package name:     ' + config.packagename,
+                        '       organization:     ' + config.organization,
                         '',
-                        '  in:                   ' + config.projectPath,
+                        '  in:                    ' + config.projectPath,
                         '',
-                        '  from template repo:   ' + config.templaterepouri
+                        '  from template repo:    ' + config.templaterepouri
                   ];
 
     if (config.templatepath) {
-        details = details.concat(['       template path:   ' + config.templatepath]);
+        details = details.concat(['       template path:    ' + config.templatepath]);
     }
             
 
     if (config.sdkdependencies) {
-        details = details.concat(['       sdk dependencies:   ' + config.sdkdependencies]);
+        details = details.concat(['       sdk dependencies: ' + config.sdkdependencies]);
+    }
+
+    // OAuth configuration details
+    if (config.consumerkey && config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' && config.consumerkey.trim() !== '') {
+        details = details.concat(['       consumer key:     ' + config.consumerkey]);
+    }
+
+    if (config.callbackurl && config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
+        details = details.concat(['       callback URL:     ' + config.callbackurl]);
+    }
+
+    if (config.loginserver && config.loginserver.trim() !== '') {
+        details = details.concat(['       login server:     ' + config.loginserver]);
     }
             
     // Hybrid extra details
     if (config.apptype.indexOf('hybrid') >= 0) {
         if (config.apptype === 'hybrid_remote') {
-            details = details.concat(['       start page:      ' + config.startpage]);
+            details = details.concat(['       start page:       ' + config.startpage]);
         }
 
-        details = details.concat(['       plugin repo:     ' + config.cordovaPluginRepoUri]);
+        details = details.concat(['       plugin repo:      ' + config.cordovaPluginRepoUri]);
     }
             
     utils.logParagraph(details);
 }
 
 //
+// Check if valid OAuth configuration is provided
+//
+function hasValidOAuthConfig(config) {
+    return config.consumerkey && config.callbackurl &&
+           config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' &&
+           config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' &&
+           config.consumerkey.trim() !== '' && 
+           config.callbackurl.trim() !== '' &&
+           (!config.loginserver || config.loginserver.trim() !== '');
+}
+
+//
 // Print next steps
 //
-function printNextSteps(ide, projectPath, result) {
+function printNextSteps(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('   - make sure to plug your OAuth Client ID and Callback URI');
+        nextSteps.push('     into ' + bootconfigFile);
+    }
+
+    nextSteps.push('   - build and run');
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile,
-                       ]);
+    utils.logParagraph(nextSteps);
 };    
 
 //
 // Print next steps for Native Login
 // 
-function printNextStepsForNativeLogin(ide, projectPath, result) {
+function printNextStepsForNativeLogin(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
     var entryFile = (ide === 'XCode') ? 'SceneDelegate' : 'MainApplication';  
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.');        
+        nextSteps.push('   - Make sure to plug your OAuth Client ID and Callback URI into');
+        nextSteps.push('     into ' + bootconfigFile);
+        nextSteps.push('     since it is still be used for authentication if we fallback on the webview.');
+    }
+
+    nextSteps.push('   - build and run');
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.',
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile + ', since it is still used for',
-                        'authentication if we fallback on the webview.'
-                       ]);
+    utils.logParagraph(nextSteps);
 }
 
 //
@@ -435,13 +472,14 @@ function actuallyCreateApp(forcecli, config) {
         
         // Printing next steps
         if (!(results instanceof Array)) { results = [results] };
+        var hasValidOAuth = hasValidOAuthConfig(config);
         for (var result of results) {
             var ide = SDK.ides[result.platform || config.platform.split(',')[0]];
 
             if (config.templatepath != undefined && config.templatepath.includes('NativeLogin')) {
-                printNextStepsForNativeLogin(ide, config.projectPath, result);
+                printNextStepsForNativeLogin(ide, config.projectPath, result, hasValidOAuth);
             } else {
-                printNextSteps(ide, config.projectPath, result);
+                printNextSteps(ide, config.projectPath, result, hasValidOAuth);
             }
         }
         printNextStepsForServerProjectIfNeeded(config.projectPath);
