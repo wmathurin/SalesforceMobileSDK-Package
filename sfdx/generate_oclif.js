@@ -69,6 +69,7 @@ function generateCommmandClass(cli, commandName) {
         `${className}.longDescription = ${className}.command.longDescription;`,
         `${className}.hidden = ${className}.command.hidden;`,
         `${className}.flags = OclifAdapter.toFlags(${className}.command.args);`,
+        `${className}.strict = ${className}.command.supportCustomFlags ? false: true;`,
         ``,
         `exports.${className} = ${className};`
     ].join('\n');
