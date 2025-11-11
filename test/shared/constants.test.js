@@ -30,12 +30,19 @@ const SDK = require('../../shared/constants');
 describe('constants', () => {
     describe('commands.create', () => {
         it('should have supportCustomFlags set to true', () => {
-            expect(SDK.commands.create.supportCustomFlags).toBe(true);
+            expect(SDK.commands.create.supportCustomFlags).toBe(undefined);
         });
     });
+
     describe('commands.createwithtemplate', () => {
         it('should have supportCustomFlags set to true', () => {
             expect(SDK.commands.createwithtemplate.supportCustomFlags).toBe(true);
+        });
+    });
+
+    describe('commands.listtemplates', () => {
+        it('should have supportCustomFlags set to undefined', () => {
+            expect(SDK.commands.listtemplates.supportCustomFlags).toBe(undefined);
         });
     });
 });

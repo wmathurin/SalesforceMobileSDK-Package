@@ -71,5 +71,6 @@ function readJsonFile(filePath) {
 }
 
 module.exports = {
-    validateJson
+    validateJson,
+    readJsonFile
 };

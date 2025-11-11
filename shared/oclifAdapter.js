@@ -232,16 +232,24 @@ class OclifAdapter extends Command {
             
             // Check if this argument is a template property flag
             if (arg.startsWith(prefix)) {
-                // Extract the property name (everything after the prefix)
-                const propertyName = arg.substring(prefix.length);
-                
-                // Check if there's a next argument and it's not another template property flag
-                if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
-                    // Use the next argument as the value
-                    properties[propertyName] = args[i + 1];
-                    i++; // Skip the value in the next iteration
+                // Check if the value is provided with equals sign (--template-property-prop1=val1)
+                if (arg.includes('=')) {
+                    const equalIndex = arg.indexOf('=');
+                    const propertyName = arg.substring(prefix.length, equalIndex);
+                    const propertyValue = arg.substring(equalIndex + 1);
+                    properties[propertyName] = propertyValue;
+                } else {
+                    // Extract the property name (everything after the prefix)
+                    const propertyName = arg.substring(prefix.length);
+                    
+                    // Check if there's a next argument and it's not another template property flag
+                    if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+                        // Use the next argument as the value
+                        properties[propertyName] = args[i + 1];
+                        i++; // Skip the value in the next iteration
+                    }
+                    // If the next argument is another flag or doesn't exist, skip this property
                 }
-                // If the next argument is another flag or doesn't exist, skip this property
             }
         }
         

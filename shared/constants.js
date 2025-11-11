@@ -384,8 +384,7 @@ module.exports = {
                          ].filter(x=>x!=null),
             description: cli => 'create ' + cli.purpose,
             longDescription: cli => 'Create ' + cli.purpose + '.',
-            help: 'This command initiates creation of a new app based on the standard Mobile SDK template.',
-            supportCustomFlags: true
+            help: 'This command initiates creation of a new app based on the standard Mobile SDK template.'
         },
         createwithtemplate: {
             name: 'createwithtemplate',

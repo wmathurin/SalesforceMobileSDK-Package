@@ -74,6 +74,20 @@ describe('OclifAdapter', () => {
             });
         });
 
+        it('should handle multiple template properties with values using equals sign', () => {
+            const remainingArgs = [
+                '--template-property-prop1=value1',
+                '--template-property-prop2=value2',
+                '--template-property-prop3=value3'
+            ];
+            const result = OclifAdapter.getCustomProperties(remainingArgs);
+            expect(result).toEqual({
+                prop1: 'value1',
+                prop2: 'value2',
+                prop3: 'value3'
+            });
+        });
+
         it('should throw error with correct message when invalid template prefix is used', () => {
             const remainingArgs = ['--template-invalid', 'value'];
             let error;

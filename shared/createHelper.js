@@ -32,7 +32,11 @@ var path = require('path'),
     configHelper = require('./configHelper'),
     prepareTemplate = require('./templateHelper').prepareTemplate,
     getSDKTemplateURI = require('./templateHelper').getSDKTemplateURI,
-    fs = require('fs');
+    fs = require('fs'),
+    Ajv = require('ajv'),
+    COLOR = require('./outputColors'),
+    readJsonFile = require('./jsonChecker').readJsonFile,
+    JSON5 = require('json5');
 
 // Constant
 var SERVER_PROJECT_DIR = 'server';    
@@ -446,6 +450,8 @@ function actuallyCreateApp(forcecli, config) {
         }
         config.templateLocalPath = path.join(repoDir, config.templatepath);
 
+        validateCustomProperties(`${repoDir}/template.json`, config.templateProperties);
+
         // Override sdk dependencies in package.json if any were provided
         if (config.sdkdependencies) {
             overrideSdkDependencies(path.join(config.templateLocalPath, 'package.json'), config.sdkdependencies);
@@ -491,6 +497,45 @@ function actuallyCreateApp(forcecli, config) {
     }
 }
 
+function validateCustomProperties(templateJsonPath, customProperties) {
+    // skip if template json file does not exist
+    if (!fs.existsSync(templateJsonPath)) {
+        return;
+    }
+
+    utils.log('Validating custom properties against schema...');
+    // Validate data against schema with AJV
+
+    const ajv = new Ajv({allErrors: true});
+    const metaSchemaPath = path.join(__dirname, 'templateMetaSchema.jsonc');
+    const metaSchemaContent = fs.readFileSync(metaSchemaPath, 'utf8');
+    const metaSchema = JSON5.parse(metaSchemaContent);
+    ajv.addMetaSchema(metaSchema);
+
+    const schema = readJsonFile(templateJsonPath);
+
+    // the schema needs to have the following structure to reference the template meta schema
+    // {
+    //  "$schema": "https://salesforce.com/msdk/template_meta_schema"
+    //  ...
+    // } 
+    const validate = ajv.compile(schema);
+
+    const jsonToValidate = {
+        templatePrerequisites: { templateProperties: customProperties }
+    }
+    const valid = validate(jsonToValidate);
+
+    if (!valid) {
+        utils.logError('Custom properties validation failed:\n', 
+            JSON.stringify(validate.errors, null, "  "));       
+        process.exit(1);
+    }
+
+    utils.logInfo('Custom properties are valid\n', COLOR.green);
+}
+
 module.exports = {
-    createApp
+    createApp,
+    validateCustomProperties
 };

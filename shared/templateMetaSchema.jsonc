@@ -1,0 +1,49 @@
+{
+    // Schema identifier for the Mobile SDK template meta schema
+    "$id": "https://salesforce.com/msdk/template_meta_schema",
+
+    // This meta-schema extends JSON Schema Draft-07 and adds additional constraints
+    "allOf": [
+        {
+            // Reference to the base JSON Schema Draft-07 specification
+            "$ref": "http://json-schema.org/draft-07/schema#"
+        },
+        {
+            // Additional constraints specific to MSDK template metadata
+            "type": "object",
+            "required": [
+                "properties"
+            ],
+            "properties": {
+                "properties": {
+                    "type": "object",
+                    "required": [
+                        "templatePrerequisites" // Every template schema must define templatePrerequisites
+                    ],
+                    "properties": {
+                        "templatePrerequisites": {
+                            "type": "object",
+                            "required": [
+                                "properties"
+                            ],
+                            "properties": {
+                                "properties": {
+                                    "type": "object",
+                                    "required": [
+                                        "templateProperties" // Must contain templateProperties
+                                    ],
+                                    "properties": {
+                                        // The templateProperties object where custom template properties are defined
+                                        "templateProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
