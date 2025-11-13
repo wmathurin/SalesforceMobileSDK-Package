@@ -505,20 +505,8 @@ function validateCustomProperties(templateJsonPath, customProperties) {
 
     utils.log('Validating custom properties against schema...');
     // Validate data against schema with AJV
-
     const ajv = new Ajv({allErrors: true});
-    const metaSchemaPath = path.join(__dirname, 'templateMetaSchema.jsonc');
-    const metaSchemaContent = fs.readFileSync(metaSchemaPath, 'utf8');
-    const metaSchema = JSON5.parse(metaSchemaContent);
-    ajv.addMetaSchema(metaSchema);
-
     const schema = readJsonFile(templateJsonPath);
-
-    // the schema needs to have the following structure to reference the template meta schema
-    // {
-    //  "$schema": "https://salesforce.com/msdk/template_meta_schema"
-    //  ...
-    // } 
     const validate = ajv.compile(schema);
 
     const jsonToValidate = {

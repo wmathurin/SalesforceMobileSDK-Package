@@ -86,81 +86,8 @@ describe('createHelper', () => {
                 expect(jsonChecker.readJsonFile).not.toHaveBeenCalled();
             });
         });
-
-        describe('when invalid template schema file is present', () => {
-            const customProperties = {
-                developerName: 'bob',
-                organizationId: '550e8400-e29b-41d4-a716-446655440000'
-            };
-
-            it('should fail validation when schema does not define templatePrerequisites', () => {
-                jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-                jsonChecker.readJsonFile.mockReturnValue({
-                    "$schema": "https://salesforce.com/msdk/template_meta_schema",
-                    "title": "Template Prerequisites Schema",
-                    "description": "Schema for template prerequisites configuration",
-                    "type": "object",
-                    "properties": {
-                        "foo": {
-                            "type": "object",
-                            "properties": {
-                                "bar": {
-                                    "type": "object",
-                                    "properties": {
-                                        "organizationId": {
-                                            "type": "string",
-                                            "format": "uuid",
-                                            "description": "Organization identifier in UUID format"
-                                        }
-                                    }
-                                }
-                            },
-                            "additionalProperties": false
-                        }
-                    },
-                });
-                
-                expect(() => {
-                    createHelper.validateCustomProperties(mockTemplatePath, customProperties);
-                }).toThrow(`schema is invalid: data.properties should have required property 'templatePrerequisites'`);
-            });
-
-            it('should fail validation when schema does not define templateProperties', () => {
-                jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-                jsonChecker.readJsonFile.mockReturnValue({
-                    "$schema": "https://salesforce.com/msdk/template_meta_schema",
-                    "title": "Template Prerequisites Schema",
-                    "description": "Schema for template prerequisites configuration",
-                    "type": "object",
-                    "properties": {
-                        "templatePrerequisites": {
-                            "type": "object",
-                            "properties": {
-                                "bar": {
-                                    "type": "object",
-                                    "properties": {
-                                        "organizationId": {
-                                            "type": "string",
-                                            "format": "uuid",
-                                            "description": "Organization identifier in UUID format"
-                                        }
-                                    }
-                                }
-                            },
-                            "additionalProperties": false
-                        }
-                    },
-                });
-                
-                expect(() => {
-                    createHelper.validateCustomProperties(mockTemplatePath, customProperties);
-                }).toThrow(`schema is invalid: data.properties.templatePrerequisites.properties should have required property 'templateProperties`);
-            });
-        });
-
         describe('when valid template schema file exists', () => {
             const templateSchema = {
-                "$schema": "https://salesforce.com/msdk/template_meta_schema",
                 "title": "Template Prerequisites Schema",
                 "description": "Schema for template prerequisites configuration",
                 "type": "object",
