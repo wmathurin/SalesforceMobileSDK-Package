@@ -6,6 +6,7 @@
     "@oclif/plugin-help": "^6.2.35",
     "@salesforce/core": "^8.23.4",
     "ajv": "^6.12.6",
+    "change-case": "^4.1.2",
     "jsonlint": "^1.6.3",
     "shelljs": "^0.8.5"
   },
