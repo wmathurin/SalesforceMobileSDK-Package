@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-present, salesforce.com, inc.
+ * Copyright (c) 2016-present, salesforce.com, inc.
  * All rights reserved.
  * Redistribution and use of this software in source and binary forms, with or
  * without modification, are permitted provided that the following conditions
@@ -12,7 +12,7 @@
  * - Neither the name of salesforce.com, inc. nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission of salesforce.com, inc.
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT OWNERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
@@ -25,52 +25,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Dependencies
-var fs = require('fs'),
-    path = require('path'),
-    COLOR = require('./outputColors'),
-    utils = require('./utils'),
-    Ajv = require('ajv'),
-    jsonlint = require('jsonlint')
-;
+const SDK = require('../../shared/constants');
 
-// Config type to schema map
-var SCHEMA = {
-    store: path.resolve(__dirname, 'store.schema.json'),
-    syncs: path.resolve(__dirname, 'syncs.schema.json')
-};
+describe('constants', () => {
+    describe('commands.create', () => {
+        it('should have supportCustomFlags set to true', () => {
+            expect(SDK.commands.create.supportCustomFlags).toBe(undefined);
+        });
+    });
 
+    describe('commands.createwithtemplate', () => {
+        it('should have supportCustomFlags set to true', () => {
+            expect(SDK.commands.createwithtemplate.supportCustomFlags).toBe(true);
+        });
+    });
 
-//
-// Validate config against schema
-//
-function validateJson(configPath, configType) {
-    var config = readJsonFile(configPath)
-    var schema = readJsonFile(SCHEMA[configType])
-    var ajv = new Ajv({allErrors: true});
-    var valid = ajv.validate(schema, config);
-    if (!valid) {
-        utils.logError(JSON.stringify(ajv.errors, null, "  "))
-    } else {
-        utils.logInfo(`${configPath} conforms to ${configType} schema\n`, COLOR.green)
-    }
-}
+    describe('commands.listtemplates', () => {
+        it('should have supportCustomFlags set to undefined', () => {
+            expect(SDK.commands.listtemplates.supportCustomFlags).toBe(undefined);
+        });
+    });
+});
 
-//
-// Read json from file and validates that is valid json
-//
-function readJsonFile(filePath) {
-    try {
-        var content = fs.readFileSync(filePath, "UTF-8");
-        var json = jsonlint.parse(content);
-        return json;
-    } catch (error) {
-        utils.logError(`Error parsing ${filePath}: ${error}\n`);
-        process.exit(1);
-    }
-}
-
-module.exports = {
-    validateJson,
-    readJsonFile
-};
