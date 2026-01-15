@@ -25,7 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-const OclifAdapter = require('../../shared/oclifAdapter');
+const OclifAdapter = require('../shared/oclifAdapter');
 const { SfError } = require('@salesforce/core');
 
 describe('OclifAdapter', () => {
@@ -96,7 +96,9 @@ describe('OclifAdapter', () => {
             } catch (e) {
                 error = e;
             }
-            expect(error).toBeInstanceOf(SfError);
+            expect(error).toBeDefined();
+            expect(error.constructor.name).toBe('SfError');
+            expect(error instanceof Error).toBe(true);
             expect(error.message).toContain('Invalid template property flag: "--template-invalid"');
             expect(error.message).toContain('--template-property-');
             expect(error.name).toBe('InvalidTemplatePropertyPrefix');

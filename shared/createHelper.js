@@ -35,8 +35,7 @@ var path = require('path'),
     fs = require('fs'),
     Ajv = require('ajv'),
     COLOR = require('./outputColors'),
-    readJsonFile = require('./jsonChecker').readJsonFile,
-    JSON5 = require('json5');
+    readJsonFile = require('./jsonChecker').readJsonFile;
 
 // Constant
 var SERVER_PROJECT_DIR = 'server';    

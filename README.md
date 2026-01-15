@@ -5,7 +5,7 @@ Repo for forceios/forcedroid/forcehybrid/forcereact and the Salesforce CLI plugi
 
 ## To get started do the following from the root directory
 ``` shell
-node ./install.js
+npm install
 ```
 
 ## To run forceios do
@@ -44,6 +44,11 @@ sf mobilesdk reactnative --help
 ## To test forceios, forcedroid, forcehybrid, forcereact or the Salesforce CLI plugin do
 ```shell
 ./test/test_force.js
+```
+
+## To run unit tests do
+```shell
+npm test
 ```
 
 ## To npm pack forceios, forcedroid, forcehybrid, forcereact or the Salesforce CLI plugin do
