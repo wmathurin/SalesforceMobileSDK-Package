@@ -486,7 +486,7 @@ function generateNpmPackages() {
         msg: `Generating npm packages`,
         cmds: [
             `git checkout ${config.masterBranch}`,
-            `node ./install.js`,
+            `npm install`,
             `node ./pack/pack.js --cli=forceios,forcedroid,forcehybrid,forcereact`,
             `node ./pack/pack.js --sfdx-plugin`,
             `mv ./force*.tgz ../`,

@@ -30,19 +30,19 @@ const path = require('path');
 const os = require('os');
 
 // Mock dependencies
-jest.mock('../../sfdx/shared/utils', () => ({
+jest.mock('../sfdx/shared/utils', () => ({
     mkTmpDir: jest.fn(() => '/tmp/test-tmp-dir'),
     removeFile: jest.fn(),
     logError: jest.fn()
 }));
 
-jest.mock('../../sfdx/shared/constants', () => ({
+jest.mock('../sfdx/shared/constants', () => ({
     templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#dev'
 }));
 
 // Import after mocking
-const utils = require('../../sfdx/shared/utils');
-const templateHelper = require('../../sfdx/shared/templateHelper');
+const utils = require('../sfdx/shared/utils');
+const templateHelper = require('../sfdx/shared/templateHelper');
 
 describe('templateHelper', () => {
     describe('getTemplates', () => {

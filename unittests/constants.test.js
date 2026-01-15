@@ -25,7 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-const SDK = require('../../shared/constants');
+const SDK = require('../shared/constants');
 
 describe('constants', () => {
     describe('commands.create', () => {

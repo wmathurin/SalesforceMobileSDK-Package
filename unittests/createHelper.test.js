@@ -28,21 +28,21 @@
 const fs = require('fs');
 
 // Mock dependencies
-jest.mock('../../sfdx/shared/jsonChecker', () => ({
+jest.mock('../sfdx/shared/jsonChecker', () => ({
     readJsonFile: jest.fn(),
     validateJson: jest.fn()
 }));
 
-jest.mock('../../sfdx/shared/utils', () => ({
+jest.mock('../sfdx/shared/utils', () => ({
     log: jest.fn(),
     logInfo: jest.fn(),
     logError: jest.fn()
 }));
 
 // Import after mocking
-const jsonChecker = require('../../sfdx/shared/jsonChecker');
-const utils = require('../../sfdx/shared/utils');
-const createHelper = require('../../sfdx/shared/createHelper');
+const jsonChecker = require('../sfdx/shared/jsonChecker');
+const utils = require('../sfdx/shared/utils');
+const createHelper = require('../sfdx/shared/createHelper');
 
 describe('createHelper', () => {
     describe('validateCustomProperties', () => {
