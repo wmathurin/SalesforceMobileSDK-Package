@@ -22,7 +22,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Build all ios native templates
         run: ./test/test_force.js --exit-on-failure --cli=forceios
 
@@ -38,7 +38,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Install SFDX
         run: npm install -g @salesforce/cli
       - name: Build all ios native templates with SFDX
@@ -56,7 +56,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Install SFDX
         run: npm install -g @salesforce/cli
       - name: Install Cordova
@@ -76,7 +76,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Install SFDX
         run: npm install -g @salesforce/cli
       - name: Install Cordova
@@ -96,7 +96,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Install Typescript
         run: npm install -g typescript
       - name: Build all ios react native templates
@@ -114,7 +114,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - name: Install SFDX
         run: npm install -g @salesforce/cli
       - name: Install Typescript
