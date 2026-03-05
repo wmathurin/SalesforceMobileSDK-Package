@@ -47,8 +47,8 @@ const masterBranchDefault = "master2"
 const devBranchDefault = "dev2"
 const docBranchDefault = "gh-pages2"
 const versionReleasedDefault = VERSION
-const nextVersionDefault = "13.2.0"
-const versionCodeReleasedDefault = 90
+const nextVersionDefault = "14.0.0"
+const versionCodeReleasedDefault = 92
 
 // Questions
 const QUESTIONS = [
@@ -441,6 +441,7 @@ function generateDocIOS() {
         cmds: [
             `git checkout ${config.masterBranch}`,
             `./docs/generate_docs.sh`,
+	    `git checkout -- *.podspec`, // build might regenerate podspecs - ignore those changes
             `mv ./build/artifacts/doc ../docIOS`,
             `git checkout ${config.docBranch}`,
             `rm -rf Documentation/*`,
