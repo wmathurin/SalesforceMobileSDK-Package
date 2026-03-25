@@ -112,6 +112,11 @@ function createHybridApp(config) {
     // Run cordova prepare
     utils.runProcessThrowError('cordova prepare', config.projectDir);
 
+    // Remove CordovaLib subproject from iOS workspace to fix archiving issue
+    if (config.platform.split(',').includes('ios')) {
+        removeCordovaLibFromWorkspace(config.projectDir, config.appname);
+    }
+
     // Add theme for Android API 35
     if (config.platform.split(',').includes('android')) {
         createAndroidAPI35Theme(config.projectDir);
@@ -122,8 +127,102 @@ function createHybridApp(config) {
 }
 
 //
+// Remove CordovaLib subproject from iOS project
+// This fixes the "Generic Xcode Archive" issue when archiving
+//
+function removeCordovaLibFromWorkspace(projectDir, appname) {
+    const projectPath = path.join(projectDir, 'platforms', 'ios', appname + '.xcodeproj');
+    const pbxprojPath = path.join(projectPath, 'project.pbxproj');
+
+    if (!fs.existsSync(pbxprojPath)) {
+        utils.logDebug('Project file not found, skipping CordovaLib removal: ' + pbxprojPath);
+        return;
+    }
+
+    try {
+        // Read the project file
+        let content = fs.readFileSync(pbxprojPath, 'utf8');
+        const originalContent = content;
+
+        // Step 1: Find and store the CordovaLib file reference ID
+        const fileRefMatch = content.match(/([A-F0-9]+)\s*\/\*\s*CordovaLib\.xcodeproj\s*\*\/\s*=\s*\{isa\s*=\s*PBXFileReference[^}]*CordovaLib\/CordovaLib\.xcodeproj[^}]*\}/);
+        if (!fileRefMatch) {
+            utils.logDebug('CordovaLib file reference not found in project');
+            return;
+        }
+        const cordovaLibId = fileRefMatch[1];
+
+        // Step 2: Find all PBXContainerItemProxy IDs that reference CordovaLib (need to track for PBXReferenceProxy removal)
+        const containerProxyIds = [];
+        const proxyRegex = /([A-F0-9]+)\s*\/\*\s*PBXContainerItemProxy\s*\*\/\s*=\s*\{[^}]*containerPortal\s*=\s*[A-F0-9]+[^}]*remoteInfo\s*=\s*CordovaLib[^}]*\}/g;
+        let match;
+        while ((match = proxyRegex.exec(content)) !== null) {
+            containerProxyIds.push(match[1]);
+        }
+
+        // Step 3: Find all PBXTargetDependency IDs that reference CordovaLib (we need to track these)
+        const targetDepIds = [];
+        const targetDepRegex = /([A-F0-9]+)\s*\/\*\s*PBXTargetDependency\s*\*\/\s*=\s*\{[^}]*name\s*=\s*CordovaLib;[^}]*\}/g;
+        while ((match = targetDepRegex.exec(content)) !== null) {
+            targetDepIds.push(match[1]);
+        }
+
+        // Step 4: Find the Products group ID from projectReferences
+        const productsGroupMatch = content.match(/ProductGroup\s*=\s*([A-F0-9]+)\s*\/\*\s*Products\s*\*\/\s*;\s*ProjectRef\s*=\s*[A-F0-9]+\s*\/\*\s*CordovaLib\.xcodeproj/);
+        const productsGroupId = productsGroupMatch ? productsGroupMatch[1] : null;
+
+        // Step 5: Remove all PBXContainerItemProxy entries that reference CordovaLib
+        content = content.replace(new RegExp(`\\s*[A-F0-9]+\\s*\\/\\*\\s*PBXContainerItemProxy\\s*\\*\\/\\s*=\\s*\\{[^}]*containerPortal\\s*=\\s*${cordovaLibId}[^}]*\\};?`, 'g'), '');
+
+        // Step 6: Remove PBXReferenceProxy entries that reference the deleted PBXContainerItemProxy
+        containerProxyIds.forEach(id => {
+            content = content.replace(new RegExp(`\\s*[A-F0-9]+\\s*\\/\\*\\s*[^*]+\\*\\/\\s*=\\s*\\{[^}]*remoteRef\\s*=\\s*${id}[^}]*\\};?`, 'g'), '');
+        });
+
+        // Step 7: Remove the Products group if it exists and references deleted proxies
+        if (productsGroupId) {
+            content = content.replace(new RegExp(`\\s*${productsGroupId}\\s*\\/\\*\\s*Products\\s*\\*\\/\\s*=\\s*\\{[^}]*\\};?`, 'g'), '');
+        }
+
+        // Step 8: Remove PBXTargetDependency entries that reference CordovaLib
+        content = content.replace(/\s*[A-F0-9]+\s*\/\*\s*PBXTargetDependency\s*\*\/\s*=\s*\{[^}]*name\s*=\s*CordovaLib;[^}]*\};?/g, '');
+
+        // Step 9: Remove references to PBXTargetDependency IDs from dependencies arrays
+        targetDepIds.forEach(id => {
+            content = content.replace(new RegExp(`\\s*${id}\\s*\\/\\*\\s*PBXTargetDependency\\s*\\*\\/\\s*,?`, 'g'), '');
+        });
+
+        // Step 10: Remove the PBXFileReference entry for CordovaLib.xcodeproj
+        content = content.replace(new RegExp(`\\s*${cordovaLibId}\\s*\\/\\*\\s*CordovaLib\\.xcodeproj\\s*\\*\\/\\s*=\\s*\\{[^}]*\\};?`, 'g'), '');
+
+        // Step 11: Remove references to CordovaLib ID from arrays (children, projectReferences, etc.)
+        content = content.replace(new RegExp(`\\s*${cordovaLibId}\\s*\\/\\*\\s*CordovaLib\\.xcodeproj\\s*\\*\\/\\s*,?`, 'g'), '');
+
+        // Step 12: Remove entire projectReferences array entries that contain CordovaLib (including ones with empty ProjectRef)
+        content = content.replace(/\s*\{\s*ProductGroup\s*=\s*[A-F0-9]+\s*\/\*\s*Products\s*\*\/\s*;\s*ProjectRef\s*=\s*([A-F0-9]*)\s*(\/\*\s*CordovaLib\.xcodeproj\s*\*\/)?\s*;\s*\}\s*,?/g, '');
+
+        // Step 13: Remove the entire projectReferences property if it becomes empty
+        content = content.replace(/\s*projectReferences\s*=\s*\(\s*\);?/g, '');
+
+        // Step 14: Clean up any resulting empty lines or trailing commas
+        content = content.replace(/,(\s*\))/g, '$1'); // Remove trailing commas before closing parentheses
+        content = content.replace(/\n\s*\n\s*\n/g, '\n\n'); // Reduce multiple blank lines to double
+
+        // Only write back if something was changed
+        if (content !== originalContent) {
+            fs.writeFileSync(pbxprojPath, content, 'utf8');
+            utils.log('Removed CordovaLib subproject from Xcode project');
+        } else {
+            utils.logDebug('No CordovaLib references found to remove');
+        }
+    } catch (error) {
+        utils.logError('Failed to remove CordovaLib from project', error);
+    }
+}
+
+//
 // Add Android API 35 theme file
-// 
+//
 function createAndroidAPI35Theme(projectDir) {
     const dirPath = path.join(projectDir, 'platforms', 'android', 'app', 'src', 'main', 'res', 'values-v35');
     const filePath = path.join(dirPath, 'themes.xml');
