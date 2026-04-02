@@ -18,7 +18,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -45,7 +45,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -74,7 +74,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -105,7 +105,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -136,7 +136,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -167,7 +167,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Install Dependencies
-        run: node ./install.js
+        run: npm install
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'

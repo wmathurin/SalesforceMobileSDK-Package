@@ -73,7 +73,8 @@ function getCommandExpanded(cli, commandName) {
         args: getArgsExpanded(cli, commandName),
         description: applyCli(command.description, cli),
         longDescription: applyCli(command.longDescription, cli),
-        help: applyCli(command.help, cli)
+        help: applyCli(command.help, cli),
+        supportCustomFlags: command.supportCustomFlags
     };
 }
 

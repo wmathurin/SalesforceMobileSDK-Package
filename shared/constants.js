@@ -28,7 +28,7 @@
 var path = require('path'),
     shelljs = require('shelljs');
 
-var VERSION= '13.1.1';
+var VERSION= '13.2.0';
 
 module.exports = {
     version: VERSION,
@@ -40,11 +40,11 @@ module.exports = {
         },
         node: {
             checkCmd: 'node --version',
-            minVersion: '12.0'
+            minVersion: '20'
         },
         npm: {
             checkCmd: 'npm -v',
-            minVersion: '3.10'
+            minVersion: '10'
         },
         yarn: {
             checkCmd: 'yarn -v',
@@ -60,9 +60,9 @@ module.exports = {
         },
         cordova: {
             checkCmd: 'cordova -v',
-//            pluginRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
-            minVersion: '12.0.0',
-             pluginRepoUri: 'salesforce-mobilesdk-cordova-plugin@v' + VERSION, // GA
+            pluginRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-CordovaPlugin#dev',    // dev
+            minVersion: '13.0.0',
+//             pluginRepoUri: 'salesforce-mobilesdk-cordova-plugin@v' + VERSION, // GA
             platformVersion: {
                 ios: '7.1.1',
                 android: '14.0.1'
@@ -79,8 +79,8 @@ module.exports = {
         android: 'Android Studio'
     },
 
-//    templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#dev',    // dev
-     templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#v' + VERSION, // GA
+    templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#dev',    // dev
+//     templatesRepoUri: 'https://github.com/forcedotcom/SalesforceMobileSDK-Templates#v' + VERSION, // GA
 
     forceclis: {
         forceios: {
@@ -140,7 +140,7 @@ module.exports = {
             commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
         }
     },
-
+    
     args: {
         platform: {
             name: 'platform',
@@ -296,7 +296,7 @@ module.exports = {
             type: 'string',
             hidden: true
         },
-	sdkDependencies: {
+	    sdkDependencies: {
             name: 'sdkdependencies',
             description: 'override sdk dependencies',
             'char': 'd',
@@ -329,6 +329,39 @@ module.exports = {
             required: false,
             type: 'boolean',
             hidden: false
+        },
+        consumerKey: {
+            name: 'consumerkey',
+            'char': 'c',
+            description: 'OAuth consumer key for the Salesforce External Client App or Connected App',
+            longDescription: 'The OAuth consumer key (client ID) for your Salesforce External Client App or Connected App. When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your OAuth consumer key (leave empty to manually configure this value in the project\'s bootconfig file):',
+            error: cli => val => 'Invalid value for consumer key: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
+        },
+        callbackURL: {
+            name: 'callbackurl',
+            'char': 'u',
+            description: 'OAuth callback URL for the Salesforce External Client App or Connected App',
+            longDescription: 'The OAuth callback URL (redirect URI) for your Salesforce External Client App or Connected App. When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your OAuth callback URL (leave empty to manually configure this value in the project\'s bootconfig file):',
+            error: cli => val => 'Invalid value for callback URL: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
+        },
+        loginServer: {
+            name: 'loginserver',
+            'char': 'l',
+            description: 'Login server URL for the Salesforce org',
+            longDescription: 'The login server URL for your Salesforce org (e.g. https://login.salesforce.com, https://test.salesforce.com, or custom domain). When provided, this will be automatically configured in the generated app.',
+            prompt: 'Enter your login server URL (leave empty for https://login.salesforce.com):',
+            error: cli => val => 'Invalid value for login server: \'' + val + '\'.',
+            validate: cli => val => val === undefined || val === '' || /\S+/.test(val),
+            required: false,
+            type: 'string'
         }
     },
 
@@ -342,6 +375,9 @@ module.exports = {
                           'organization',
                           cli.appTypes.indexOf('hybrid_remote') >=0 ? 'startPage' : null,
                           'outputDir',
+                          'consumerKey',
+                          'callbackURL',
+                          'loginServer',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
 			  'sdkDependencies'
@@ -361,13 +397,17 @@ module.exports = {
                           'organization',
                           cli.appTypes.indexOf('hybrid_remote') >=0 ? 'startPage' : null,
                           'outputDir',
+                          'consumerKey',
+                          'callbackURL',
+                          'loginServer',
                           'verbose',
                           cli.name === 'forcehybrid' ? 'pluginRepoUri' : null,
                           'sdkDependencies'              
                          ].filter(x=>x!=null),
             description: cli => 'create ' + cli.purpose + ' from a template',
             longDescription: cli => 'Create ' + cli.purpose + ' from a template.',
-            help: 'This command initiates creation of a new app based on the Mobile SDK template that you specify. The template can be a specialized app for your app type that Mobile SDK provides, or your own custom app that you\'ve configured to use as a template. See https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/ios_new_project_template.htm for information on custom templates.'
+            help: 'This command initiates creation of a new app based on the Mobile SDK template that you specify. The template can be a specialized app for your app type that Mobile SDK provides, or your own custom app that you\'ve configured to use as a template. See https://developer.salesforce.com/docs/atlas.en-us.mobile_sdk.meta/mobile_sdk/ios_new_project_template.htm for information on custom templates.',
+            supportCustomFlags: true
         },
         version: {
             name: 'version',

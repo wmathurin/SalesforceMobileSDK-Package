@@ -39,21 +39,46 @@ forceios create
     --packagename=app package identifier (e.g. com.mycompany.myapp)
     --organization=organization name (your company's/organization's name)
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 
 # create an iOS native mobile application from a template
 forceios createwithtemplate
-    --templaterepouri=template repo URI or Mobile SDK template name
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--templaterepouri=template repo URI or Mobile SDK template name]
+    [--template=template name within the templates suite (e.g. ReactNativeTemplate)]
     --appname=application name
     --packagename=app package identifier (e.g. com.mycompany.myapp)
     --organization=organization name (your company's/organization's name)
     [--outputdir=output directory (leave empty for current directory)]
+    [--consumerkey=OAuth consumer key for the Salesforce External Client App or Connected App]
+    [--callbackurl=OAuth callback URL for the Salesforce External Client App or Connected App]
+    [--loginserver=Login server URL for the Salesforce org]
 
  OR 
 
-# list available Mobile SDK templates
+# show version of Mobile SDK
+forceios version
+
+ OR 
+
+# list available Mobile SDK templates to create an iOS native mobile application
 forceios listtemplates
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--doc=include verbose documentation from template.json files]
+    [--json=output response in JSON format]
+
+ OR 
+
+# list details for a specific Mobile SDK template to create an iOS native mobile application
+forceios describetemplate
+    [--templatesource=git repo URL (optionally with #branch) or local path to a templates suite (root must contain templates.json)]
+    [--template=template name within the templates suite (e.g. ReactNativeTemplate)]
+    [--doc=include verbose documentation from template.json files]
+    [--json=output response in JSON format]
 
  OR 
 
@@ -61,11 +86,6 @@ forceios listtemplates
 forceios checkconfig
     --configpath=path to store or syncs config to validate
     --configtype=type of config to validate (store or syncs)
-
- OR 
-
-# show version of Mobile SDK
-forceios version
 
  OR 
 

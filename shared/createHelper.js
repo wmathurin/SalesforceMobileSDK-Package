@@ -32,7 +32,10 @@ var path = require('path'),
     configHelper = require('./configHelper'),
     prepareTemplate = require('./templateHelper').prepareTemplate,
     getSDKTemplateURI = require('./templateHelper').getSDKTemplateURI,
-    fs = require('fs');
+    fs = require('fs'),
+    Ajv = require('ajv'),
+    COLOR = require('./outputColors'),
+    readJsonFile = require('./jsonChecker').readJsonFile;
 
 // Constant
 var SERVER_PROJECT_DIR = 'server';    
@@ -109,6 +112,11 @@ function createHybridApp(config) {
     // Run cordova prepare
     utils.runProcessThrowError('cordova prepare', config.projectDir);
 
+    // Remove CordovaLib subproject from iOS workspace to fix archiving issue
+    if (config.platform.split(',').includes('ios')) {
+        removeCordovaLibFromWorkspace(config.projectDir, config.appname);
+    }
+
     // Add theme for Android API 35
     if (config.platform.split(',').includes('android')) {
         createAndroidAPI35Theme(config.projectDir);
@@ -119,8 +127,102 @@ function createHybridApp(config) {
 }
 
 //
+// Remove CordovaLib subproject from iOS project
+// This fixes the "Generic Xcode Archive" issue when archiving
+//
+function removeCordovaLibFromWorkspace(projectDir, appname) {
+    const projectPath = path.join(projectDir, 'platforms', 'ios', appname + '.xcodeproj');
+    const pbxprojPath = path.join(projectPath, 'project.pbxproj');
+
+    if (!fs.existsSync(pbxprojPath)) {
+        utils.logDebug('Project file not found, skipping CordovaLib removal: ' + pbxprojPath);
+        return;
+    }
+
+    try {
+        // Read the project file
+        let content = fs.readFileSync(pbxprojPath, 'utf8');
+        const originalContent = content;
+
+        // Step 1: Find and store the CordovaLib file reference ID
+        const fileRefMatch = content.match(/([A-F0-9]+)\s*\/\*\s*CordovaLib\.xcodeproj\s*\*\/\s*=\s*\{isa\s*=\s*PBXFileReference[^}]*CordovaLib\/CordovaLib\.xcodeproj[^}]*\}/);
+        if (!fileRefMatch) {
+            utils.logDebug('CordovaLib file reference not found in project');
+            return;
+        }
+        const cordovaLibId = fileRefMatch[1];
+
+        // Step 2: Find all PBXContainerItemProxy IDs that reference CordovaLib (need to track for PBXReferenceProxy removal)
+        const containerProxyIds = [];
+        const proxyRegex = /([A-F0-9]+)\s*\/\*\s*PBXContainerItemProxy\s*\*\/\s*=\s*\{[^}]*containerPortal\s*=\s*[A-F0-9]+[^}]*remoteInfo\s*=\s*CordovaLib[^}]*\}/g;
+        let match;
+        while ((match = proxyRegex.exec(content)) !== null) {
+            containerProxyIds.push(match[1]);
+        }
+
+        // Step 3: Find all PBXTargetDependency IDs that reference CordovaLib (we need to track these)
+        const targetDepIds = [];
+        const targetDepRegex = /([A-F0-9]+)\s*\/\*\s*PBXTargetDependency\s*\*\/\s*=\s*\{[^}]*name\s*=\s*CordovaLib;[^}]*\}/g;
+        while ((match = targetDepRegex.exec(content)) !== null) {
+            targetDepIds.push(match[1]);
+        }
+
+        // Step 4: Find the Products group ID from projectReferences
+        const productsGroupMatch = content.match(/ProductGroup\s*=\s*([A-F0-9]+)\s*\/\*\s*Products\s*\*\/\s*;\s*ProjectRef\s*=\s*[A-F0-9]+\s*\/\*\s*CordovaLib\.xcodeproj/);
+        const productsGroupId = productsGroupMatch ? productsGroupMatch[1] : null;
+
+        // Step 5: Remove all PBXContainerItemProxy entries that reference CordovaLib
+        content = content.replace(new RegExp(`\\s*[A-F0-9]+\\s*\\/\\*\\s*PBXContainerItemProxy\\s*\\*\\/\\s*=\\s*\\{[^}]*containerPortal\\s*=\\s*${cordovaLibId}[^}]*\\};?`, 'g'), '');
+
+        // Step 6: Remove PBXReferenceProxy entries that reference the deleted PBXContainerItemProxy
+        containerProxyIds.forEach(id => {
+            content = content.replace(new RegExp(`\\s*[A-F0-9]+\\s*\\/\\*\\s*[^*]+\\*\\/\\s*=\\s*\\{[^}]*remoteRef\\s*=\\s*${id}[^}]*\\};?`, 'g'), '');
+        });
+
+        // Step 7: Remove the Products group if it exists and references deleted proxies
+        if (productsGroupId) {
+            content = content.replace(new RegExp(`\\s*${productsGroupId}\\s*\\/\\*\\s*Products\\s*\\*\\/\\s*=\\s*\\{[^}]*\\};?`, 'g'), '');
+        }
+
+        // Step 8: Remove PBXTargetDependency entries that reference CordovaLib
+        content = content.replace(/\s*[A-F0-9]+\s*\/\*\s*PBXTargetDependency\s*\*\/\s*=\s*\{[^}]*name\s*=\s*CordovaLib;[^}]*\};?/g, '');
+
+        // Step 9: Remove references to PBXTargetDependency IDs from dependencies arrays
+        targetDepIds.forEach(id => {
+            content = content.replace(new RegExp(`\\s*${id}\\s*\\/\\*\\s*PBXTargetDependency\\s*\\*\\/\\s*,?`, 'g'), '');
+        });
+
+        // Step 10: Remove the PBXFileReference entry for CordovaLib.xcodeproj
+        content = content.replace(new RegExp(`\\s*${cordovaLibId}\\s*\\/\\*\\s*CordovaLib\\.xcodeproj\\s*\\*\\/\\s*=\\s*\\{[^}]*\\};?`, 'g'), '');
+
+        // Step 11: Remove references to CordovaLib ID from arrays (children, projectReferences, etc.)
+        content = content.replace(new RegExp(`\\s*${cordovaLibId}\\s*\\/\\*\\s*CordovaLib\\.xcodeproj\\s*\\*\\/\\s*,?`, 'g'), '');
+
+        // Step 12: Remove entire projectReferences array entries that contain CordovaLib (including ones with empty ProjectRef)
+        content = content.replace(/\s*\{\s*ProductGroup\s*=\s*[A-F0-9]+\s*\/\*\s*Products\s*\*\/\s*;\s*ProjectRef\s*=\s*([A-F0-9]*)\s*(\/\*\s*CordovaLib\.xcodeproj\s*\*\/)?\s*;\s*\}\s*,?/g, '');
+
+        // Step 13: Remove the entire projectReferences property if it becomes empty
+        content = content.replace(/\s*projectReferences\s*=\s*\(\s*\);?/g, '');
+
+        // Step 14: Clean up any resulting empty lines or trailing commas
+        content = content.replace(/,(\s*\))/g, '$1'); // Remove trailing commas before closing parentheses
+        content = content.replace(/\n\s*\n\s*\n/g, '\n\n'); // Reduce multiple blank lines to double
+
+        // Only write back if something was changed
+        if (content !== originalContent) {
+            fs.writeFileSync(pbxprojPath, content, 'utf8');
+            utils.log('Removed CordovaLib subproject from Xcode project');
+        } else {
+            utils.logDebug('No CordovaLib references found to remove');
+        }
+    } catch (error) {
+        utils.logError('Failed to remove CordovaLib from project', error);
+    }
+}
+
+//
 // Add Android API 35 theme file
-// 
+//
 function createAndroidAPI35Theme(projectDir) {
     const dirPath = path.join(projectDir, 'platforms', 'android', 'app', 'src', 'main', 'res', 'values-v35');
     const filePath = path.join(dirPath, 'themes.xml');
@@ -147,75 +249,112 @@ function createAndroidAPI35Theme(projectDir) {
 function printDetails(config) {
     // Printing out details
     var details = ['Creating ' + config.platform.replace(',', ' and ') + ' ' + config.apptype + ' application using Salesforce Mobile SDK',
-                        '  with app name:        ' + config.appname,
-                        '       package name:    ' + config.packagename,
-                        '       organization:    ' + config.organization,
+                        '  with app name:         ' + config.appname,
+                        '       package name:     ' + config.packagename,
+                        '       organization:     ' + config.organization,
                         '',
-                        '  in:                   ' + config.projectPath,
+                        '  in:                    ' + config.projectPath,
                         '',
-                        '  from template repo:   ' + config.templaterepouri
+                        '  from template repo:    ' + config.templaterepouri
                   ];
 
     if (config.templatepath) {
-        details = details.concat(['       template path:   ' + config.templatepath]);
+        details = details.concat(['       template path:    ' + config.templatepath]);
     }
             
 
     if (config.sdkdependencies) {
-        details = details.concat(['       sdk dependencies:   ' + config.sdkdependencies]);
+        details = details.concat(['       sdk dependencies: ' + config.sdkdependencies]);
+    }
+
+    // OAuth configuration details
+    if (config.consumerkey && config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' && config.consumerkey.trim() !== '') {
+        details = details.concat(['       consumer key:     ' + config.consumerkey]);
+    }
+
+    if (config.callbackurl && config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' && config.callbackurl.trim() !== '') {
+        details = details.concat(['       callback URL:     ' + config.callbackurl]);
+    }
+
+    if (config.loginserver && config.loginserver.trim() !== '') {
+        details = details.concat(['       login server:     ' + config.loginserver]);
     }
             
     // Hybrid extra details
     if (config.apptype.indexOf('hybrid') >= 0) {
         if (config.apptype === 'hybrid_remote') {
-            details = details.concat(['       start page:      ' + config.startpage]);
+            details = details.concat(['       start page:       ' + config.startpage]);
         }
 
-        details = details.concat(['       plugin repo:     ' + config.cordovaPluginRepoUri]);
+        details = details.concat(['       plugin repo:      ' + config.cordovaPluginRepoUri]);
     }
             
     utils.logParagraph(details);
 }
 
 //
+// Check if valid OAuth configuration is provided
+//
+function hasValidOAuthConfig(config) {
+    return config.consumerkey && config.callbackurl &&
+           config.consumerkey !== '__INSERT_CONSUMER_KEY_HERE__' &&
+           config.callbackurl !== '__INSERT_CALLBACK_URL_HERE__' &&
+           config.consumerkey.trim() !== '' && 
+           config.callbackurl.trim() !== '' &&
+           (!config.loginserver || config.loginserver.trim() !== '');
+}
+
+//
 // Print next steps
 //
-function printNextSteps(ide, projectPath, result) {
+function printNextSteps(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('   - make sure to plug your OAuth Client ID and Callback URI');
+        nextSteps.push('     into ' + bootconfigFile);
+    }
+
+    nextSteps.push('   - build and run');
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile,
-                       ]);
+    utils.logParagraph(nextSteps);
 };    
 
 //
 // Print next steps for Native Login
 // 
-function printNextStepsForNativeLogin(ide, projectPath, result) {
+function printNextStepsForNativeLogin(ide, projectPath, result, hasValidOAuth) {
     var workspacePath = path.join(projectPath, result.workspacePath);
     var bootconfigFile =  path.join(projectPath, result.bootconfigFile);
     var entryFile = (ide === 'XCode') ? 'SceneDelegate' : 'MainApplication';  
 
+    var nextSteps = ['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
+                     '',
+                     'Your application project is ready in ' + projectPath + '.',
+                     'To use your new application in ' + ide + ', do the following:', 
+                     '   - open ' + workspacePath + ' in ' + ide];
+
+    // Only show OAuth configuration instructions if valid OAuth config was not provided
+    if (!hasValidOAuth) {
+        nextSteps.push('   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.');        
+        nextSteps.push('   - Make sure to plug your OAuth Client ID and Callback URI into');
+        nextSteps.push('     into ' + bootconfigFile);
+        nextSteps.push('     since it is still be used for authentication if we fallback on the webview.');
+    }
+
+    nextSteps.push('   - build and run');
+
     // Printing out next steps
-    utils.logParagraph(['Next steps' + (result.platform ? ' for ' + result.platform : '') + ':',
-                        '',
-                        'Your application project is ready in ' + projectPath + '.',
-                        'To use your new application in ' + ide + ', do the following:', 
-                        '   - open ' + workspacePath + ' in ' + ide, 
-                        '   - Update the OAuth Client ID, Callback URI, and Community URL in ' + entryFile + ' class.',
-                        '   - build and run', 
-                        'Before you ship, make sure to plug your OAuth Client ID and Callback URI,',
-                        'and OAuth Scopes into ' + bootconfigFile + ', since it is still used for',
-                        'authentication if we fallback on the webview.'
-                       ]);
+    utils.logParagraph(nextSteps);
 }
 
 //
@@ -409,6 +548,8 @@ function actuallyCreateApp(forcecli, config) {
         }
         config.templateLocalPath = path.join(repoDir, config.templatepath);
 
+        validateCustomProperties(`${repoDir}/template.json`, config.templateProperties);
+
         // Override sdk dependencies in package.json if any were provided
         if (config.sdkdependencies) {
             overrideSdkDependencies(path.join(config.templateLocalPath, 'package.json'), config.sdkdependencies);
@@ -435,13 +576,14 @@ function actuallyCreateApp(forcecli, config) {
         
         // Printing next steps
         if (!(results instanceof Array)) { results = [results] };
+        var hasValidOAuth = hasValidOAuthConfig(config);
         for (var result of results) {
             var ide = SDK.ides[result.platform || config.platform.split(',')[0]];
 
             if (config.templatepath != undefined && config.templatepath.includes('NativeLogin')) {
-                printNextStepsForNativeLogin(ide, config.projectPath, result);
+                printNextStepsForNativeLogin(ide, config.projectPath, result, hasValidOAuth);
             } else {
-                printNextSteps(ide, config.projectPath, result);
+                printNextSteps(ide, config.projectPath, result, hasValidOAuth);
             }
         }
         printNextStepsForServerProjectIfNeeded(config.projectPath);
@@ -453,6 +595,33 @@ function actuallyCreateApp(forcecli, config) {
     }
 }
 
+function validateCustomProperties(templateJsonPath, customProperties) {
+    // skip if template json file does not exist
+    if (!fs.existsSync(templateJsonPath)) {
+        return;
+    }
+
+    utils.log('Validating custom properties against schema...');
+    // Validate data against schema with AJV
+    const ajv = new Ajv({allErrors: true});
+    const schema = readJsonFile(templateJsonPath);
+    const validate = ajv.compile(schema);
+
+    const jsonToValidate = {
+        templatePrerequisites: { templateProperties: customProperties }
+    }
+    const valid = validate(jsonToValidate);
+
+    if (!valid) {
+        utils.logError('Custom properties validation failed:\n', 
+            JSON.stringify(validate.errors, null, "  "));       
+        process.exit(1);
+    }
+
+    utils.logInfo('Custom properties are valid\n', COLOR.green);
+}
+
 module.exports = {
-    createApp
+    createApp,
+    validateCustomProperties
 };

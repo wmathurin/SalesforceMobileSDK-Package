@@ -37,7 +37,7 @@ const logError = require('./utils').logError;
 const separateRepoUrlPathBranch = require('./utils').separateRepoUrlPathBranch;
 const os = require('os');
 
-const { SfdxError } = require('@salesforce/core');
+const { SfError } = require('@salesforce/core');
 const { Command, flags } = require('@oclif/command');
 
 const namespace = 'mobilesdk';
@@ -160,9 +160,15 @@ class OclifAdapter extends Command {
     }
 
     execute(cli, klass) {
-        const { flags } = this.parse(klass);
-        if (OclifAdapter.validateCommand(cli, klass.command.name, flags)) {
-            return OclifAdapter.runCommand(cli, klass.command.name, flags);
+        const { flags, argv : remainingArgs } = this.parse(klass);
+        const commandConfig = klass.command;
+        if (OclifAdapter.validateCommand(cli, commandConfig.name, flags)) {
+            // If the command supports custom flags and there are remaining arguments, parse the custom properties
+            if (klass.command.supportCustomFlags === true && remainingArgs.length > 0) {
+                const customProperties = OclifAdapter.getCustomProperties(remainingArgs);
+                flags.templateProperties = customProperties;
+            }
+            return OclifAdapter.runCommand(cli, commandConfig.name, flags);
         }
     }
 
@@ -201,13 +207,55 @@ class OclifAdapter extends Command {
                         this.flags[name] = flag.quantity + '';
                         break;
                     } else {
-                        throw new SfdxError(`Unexpected value type for flag ${name}`, 'UnexpectedFlagValueType');
+                        throw new SfError(`Unexpected value type for flag ${name}`, 'UnexpectedFlagValueType');
                     }
                 default:
-                    throw new SfdxError(`Unexpected value type for flag ${name}`, 'UnexpectedFlagValueType');
+                    throw new SfError(`Unexpected value type for flag ${name}`, 'UnexpectedFlagValueType');
             }
         });
     }
+
+    static getCustomProperties(args) {
+        const properties = {};
+        const prefix = '--template-property-';
+        
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+            
+            // Check if this argument starts with --template- but not --template-property-
+            if (arg.startsWith('--template-') && !arg.startsWith(prefix)) {
+                throw new SfError(
+                    `Invalid template property flag: "${arg}". Template properties must be prefixed with "${prefix}".`,
+                    'InvalidTemplatePropertyPrefix'
+                );
+            }
+            
+            // Check if this argument is a template property flag
+            if (arg.startsWith(prefix)) {
+                // Check if the value is provided with equals sign (--template-property-prop1=val1)
+                if (arg.includes('=')) {
+                    const equalIndex = arg.indexOf('=');
+                    const propertyName = arg.substring(prefix.length, equalIndex);
+                    const propertyValue = arg.substring(equalIndex + 1);
+                    properties[propertyName] = propertyValue;
+                } else {
+                    // Extract the property name (everything after the prefix)
+                    const propertyName = arg.substring(prefix.length);
+                    
+                    // Check if there's a next argument and it's not another template property flag
+                    if (i + 1 < args.length && !args[i + 1].startsWith('--')) {
+                        // Use the next argument as the value
+                        properties[propertyName] = args[i + 1];
+                        i++; // Skip the value in the next iteration
+                    }
+                    // If the next argument is another flag or doesn't exist, skip this property
+                }
+            }
+        }
+        
+        return properties;
+    }
+    
 }
 
 OclifAdapter.getCommand = function (cli, commandName) {

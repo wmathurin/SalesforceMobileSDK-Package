@@ -1,6 +1,6 @@
 {
     "name": "forcedroid",
-    "version": "13.1.1",
+    "version": "13.2.0",
     "description": "Utilities for creating mobile apps based on the Salesforce Mobile SDK for Android",
     "keywords": [ "mobilesdk", "android", "salesforce", "mobile", "sdk" ],
     "homepage": "https://github.com/forcedotcom/SalesforceMobileSDK-Android",
@@ -15,7 +15,8 @@
     "dependencies": {
         "shelljs": "0.8.5",
         "ajv": "^8.11.0",
-	"jsonlint": "^1.6.3"
+	"jsonlint": "^1.6.3",
+	"change-case": "^4.1.2"
     },
     "repository": {
 	"type" : "git",

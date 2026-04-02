@@ -1,6 +1,6 @@
 ## Setup
 
-First run `./install.js` at the root of the repo
+First run `npm install` at the root of the repo
 
 ## Trial run
 
