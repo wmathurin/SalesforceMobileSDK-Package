@@ -50,7 +50,6 @@ const templatesPackageJsons = [
     './AndroidIDPTemplate/package.json',
     './AndroidNativeKotlinTemplate/package.json',
     './AndroidNativeLoginTemplate/package.json',
-    './AndroidNativeTemplate/package.json',
     './HybridLocalTemplate/package.json',
     './HybridRemoteTemplate/package.json',
     './MobileSyncExplorerKotlinTemplate/package.json',
@@ -63,8 +62,7 @@ const templatesPackageJsons = [
     './iOSNativeLoginTemplate/package.json',
     './iOSNativeSwiftEncryptedNotificationTemplate/package.json',
     './iOSNativeSwiftPackageManagerTemplate/package.json',
-    './iOSNativeSwiftTemplate/package.json',
-    './iOSNativeTemplate/package.json'
+    './iOSNativeSwiftTemplate/package.json'
 ]
 
 // Questions

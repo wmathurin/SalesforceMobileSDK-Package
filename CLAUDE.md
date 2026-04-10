@@ -91,9 +91,8 @@ forceclis: {
         purpose: 'an iOS native mobile application',
         platforms: ['ios'],
         toolNames: ['git', 'node', 'npm', 'pod'],
-        appTypes: ['native_swift', 'native'],
+        appTypes: ['native_swift'],
         appTypesToPath: {
-            'native': 'iOSNativeTemplate',
             'native_swift': 'iOSNativeSwiftTemplate'
         },
         commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
