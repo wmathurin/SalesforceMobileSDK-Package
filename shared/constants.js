@@ -150,16 +150,18 @@ module.exports = {
             prompt: cli => 'Enter the target platform(s) separated by commas (' + cli.platforms.join(', ') + '):',
             error: cli => val => 'Platform(s) must be in ' + cli.platforms.join(', '),
             validate: cli => val => !val.split(",").some(p=>cli.platforms.indexOf(p) == -1),
+            promptIf: cli => otherArgs => cli.platforms.length > 1,
             type: 'string'
         },
         appType: {
             name:'apptype',
             'char':'t',
-            description: cli => 'application type (' + cli.appTypes.join(' or ') + ', leave empty for ' + cli.appTypes[0] + ')',
-            longDescription: cli => 'You can choose one of the following types of applications: ' + cli.appTypes.join(', ') + '.',
+            description: cli => cli.appTypes.length > 1 ? 'application type (' + cli.appTypes.join(' or ') + ', leave empty for ' + cli.appTypes[0] + ')' : '',
+            longDescription: cli => cli.appTypes.length > 1 ? 'You can choose one of the following types of applications: ' + cli.appTypes.join(', ') + '.' : '',
             prompt: cli => 'Enter your application type (' + cli.appTypes.join(' or ') + ', leave empty for ' + cli.appTypes[0] + '):',
             error: cli => val => 'App type must be ' + cli.appTypes.join(' or ') + '.',
             validate: cli => val => val === undefined || val === '' || cli.appTypes.indexOf(val) >=0,
+            promptIf: cli => otherArgs => cli.appTypes.length > 1,
             required: false,
             type: 'string'
         },
@@ -171,7 +173,7 @@ module.exports = {
             prompt: 'Enter URI of repo containing template application or a Mobile SDK template name:',
             error: cli => val => 'Invalid value for template repo uri: \'' + val + '\'.',
             validate: cli => val => /^\S+$/.test(val),
-            promptIf: otherArgs => !otherArgs.templatesource,
+            promptIf: cli => otherArgs => !otherArgs.templatesource,
             required: false,
             type: 'string'
         },
@@ -184,7 +186,7 @@ module.exports = {
             error: cli => val => 'Invalid value for template source: \'' + val + '\'.',
             validate: cli => val => /\S+/.test(val),
             // Process only when explicitly provided to avoid prompting during interactive flows
-            promptIf: otherArgs => typeof otherArgs.templatesource !== 'undefined',
+            promptIf: cli => otherArgs => typeof otherArgs.templatesource !== 'undefined',
             required: false,
             type: 'string'
         },
@@ -197,7 +199,7 @@ module.exports = {
             error: cli => val => 'Invalid value for template: \'' + val + '\'.',
             validate: cli => val => /\S+/.test(val),
             // Only prompt for template when a templatesource is provided
-            promptIf: otherArgs => !!otherArgs.templatesource,
+            promptIf: cli => otherArgs => !!otherArgs.templatesource,
             required: false,
             type: 'string'
         },
@@ -251,7 +253,7 @@ module.exports = {
             error: cli => val => 'Invalid value for start page: \'' + val + '\'.',
             validate: cli => val => /\S+/.test(val),
             required: false,
-            promptIf: otherArgs => otherArgs.apptype === 'hybrid_remote',
+            promptIf: cli => otherArgs => otherArgs.apptype === 'hybrid_remote',
             type: 'string'
         },
         configPath: {
