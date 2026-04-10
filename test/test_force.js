@@ -19,7 +19,6 @@ var OS = {
 };
 
 var APP_TYPE = {
-    native: 'native',
     native_swift: 'native_swift',
     native_kotlin: 'native_kotlin',
     react_native: 'react_native',

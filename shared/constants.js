@@ -90,9 +90,8 @@ module.exports = {
             dir: 'ios',
             platforms: ['ios'],
             toolNames: ['git', 'node', 'npm', 'pod'],
-            appTypes: ['native_swift', 'native'],
+            appTypes: ['native_swift'],
             appTypesToPath: {
-                'native': 'iOSNativeTemplate',
                 'native_swift': 'iOSNativeSwiftTemplate'
             },
             commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
@@ -104,9 +103,8 @@ module.exports = {
             dir: 'android',
             platforms: ['android'],
             toolNames: ['git', 'node', 'npm'],
-            appTypes: ['native_kotlin', 'native'],
+            appTypes: ['native_kotlin'],
             appTypesToPath: {
-                'native': 'AndroidNativeTemplate',
                 'native_kotlin': 'AndroidNativeKotlinTemplate'
             },
             commands: ['create', 'createwithtemplate', 'version', 'listtemplates', 'describetemplate', 'checkconfig']
