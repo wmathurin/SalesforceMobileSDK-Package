@@ -100,7 +100,15 @@ cd sfdx
 ./generate_oclif.js
 ```
 
-#### 3.4. Generate SFDX Plugin README
+#### 3.4. Link SFDX Plugin
+
+Link the sfdx plugin to reflect the changes:
+
+```bash
+sf plugins link sfdx
+```
+
+#### 3.5. Generate SFDX Plugin README
 
 Update the SFDX plugin README with new help text:
 
@@ -158,6 +166,7 @@ grep -r "TemplateName" --include="*.js" --exclude-dir=node_modules .
   - [ ] appTypesToPath updated in constants.js
   - [ ] APP_TYPE enum updated in test_force.js
   - [ ] OCLIF commands regenerated: `sfdx/generate_oclif.js`
+  - [ ] SFDX plugin linked: `sf plugins link sfdx`
   - [ ] SFDX README regenerated: `sfdx/generate_readme.sh`
 - [ ] All JS files scanned: `grep -r "TemplateName" --include="*.js" --exclude-dir=node_modules .`
 - [ ] README.md updated
